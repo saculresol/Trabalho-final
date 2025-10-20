@@ -1,16 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Button } from 'react-native';
 
-export default function ConfigScreen({ navigation }) {  
-  const irParaConfig = () => {
-    navigation.navigate('Configurações');
-  };
-
+export default function ConfigScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <Text>Transações:</Text>
-      
-      <Button title="Voltar" onPress={irParaConfig} />
+
+      <Button title="Voltar" onPress={() => navigation.goBack()} />
 
       <StatusBar style="auto" />
     </View>

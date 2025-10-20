@@ -38,8 +38,9 @@ function HomeTabs() {
           ),
         }}
       />
+
       <Tab.Screen
-        name="Cantina"
+        name="Historico"
         component={HistoricoScreen}
         options={{
           tabBarLabel: 'Histórico',
@@ -49,13 +50,13 @@ function HomeTabs() {
         }}
       />
 
-<Tab.Screen
+      <Tab.Screen
         name="Configuracoes"
         component={ConfigScreen}
         options={{
           tabBarLabel: 'Configurações',
           tabBarIcon: ({ color, size }) => (
-            <AntDesign name="book" color={color} size={size} />
+            <AntDesign name="setting" color={color} size={size} />
           ),
         }}
       />
@@ -76,16 +77,29 @@ function AppDrawer() {
         component={HomeTabs}
         options={{ drawerLabel: 'Home' }}
       />
+
       <Drawer.Screen
         name="Perfil"
         component={PerfilScreen}
         options={{ drawerLabel: 'Perfil do aluno' }}
       />
 
-<Drawer.Screen
+      <Drawer.Screen
+        name="Transacoes"
+        component={TransacoesScreen}
+        options={{ drawerLabel: 'Transações' }}
+      />
+
+      <Drawer.Screen
         name="Sobre"
         component={SobreScreen}
         options={{ drawerLabel: 'Sobre' }}
+      />
+
+      <Drawer.Screen
+        name="Config"
+        component={ConfigScreen}
+        options={{ drawerLabel: 'Configurações' }}
       />
     </Drawer.Navigator>
   );
@@ -95,26 +109,16 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Login">
+  
         <Stack.Screen
           name="Login"
           component={LoginScreen}
           options={{ headerShown: false }}
         />
+
         <Stack.Screen
           name="AppDrawer"
           component={AppDrawer}
-          options={{ headerShown: false }}
-        />
-
-        <Stack.Screen
-          name="Transações"
-          component={TransacoesScreen}
-          options={{ headerShown: false }}
-        />
-
-<Stack.Screen
-          name="Configurações"
-          component={ConfigScreen}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
