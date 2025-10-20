@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 export default function TransacoesScreen() {  
   return (
     <View style={styles.container}>
-      <Text>Tela de Configurações</Text>
+      <Text>Perfil</Text>
       <StatusBar style="auto" />
     </View>
   );

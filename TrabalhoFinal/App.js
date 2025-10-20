@@ -9,9 +9,10 @@ import { AntDesign } from '@expo/vector-icons';
 
 import LoginScreen from './Screens/LoginScreen';
 import HomeScreen from './Screens/HomeScreen';
-import CantinaScreen from './Screens/CantinaScreen';
-import TransacoesScreen from './Screens/TransacoesScreen';
+import HistoricoScreen from './Screens/HistoricoScreen';
+import PerfilScreen from './Screens/PerfilScreen';
 import ConfigScreen from './Screens/ConfigScreen';
+import SobreScreen from './Screens/SobreScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -38,9 +39,20 @@ function HomeTabs() {
       />
       <Tab.Screen
         name="Cantina"
-        component={CantinaScreen}
+        component={HistoricoScreen}
         options={{
-          tabBarLabel: 'Cardápio',
+          tabBarLabel: 'Histórico',
+          tabBarIcon: ({ color, size }) => (
+            <AntDesign name="book" color={color} size={size} />
+          ),
+        }}
+      />
+
+<Tab.Screen
+        name="Configuracoes"
+        component={ConfigScreen}
+        options={{
+          tabBarLabel: 'Configurações',
           tabBarIcon: ({ color, size }) => (
             <AntDesign name="book" color={color} size={size} />
           ),
@@ -64,14 +76,15 @@ function AppDrawer() {
         options={{ drawerLabel: 'Home' }}
       />
       <Drawer.Screen
-        name="Transacoes"
-        component={TransacoesScreen}
-        options={{ drawerLabel: 'Transações' }}
+        name="Perfil"
+        component={PerfilScreen}
+        options={{ drawerLabel: 'Perfil do aluno' }}
       />
-      <Drawer.Screen
-        name="Config"
-        component={ConfigScreen}
-        options={{ drawerLabel: 'Configurações' }}
+
+<Drawer.Screen
+        name="Sobre"
+        component={SobreScreen}
+        options={{ drawerLabel: 'Sobre' }}
       />
     </Drawer.Navigator>
   );

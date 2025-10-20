@@ -1,10 +1,10 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 
-export default function CantinaScreen() { 
+export default function TransacoesScreen() {  
   return (
     <View style={styles.container}>
-      <Text>Tela de Configurações</Text>
+      <Text>Sobre</Text>
       <StatusBar style="auto" />
     </View>
   );
