@@ -4,13 +4,35 @@ import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  // Função para validar email básico
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const handleLogin = () => {
-    
+    // Limpa erros anteriores
+    setError('');
+
+    // Verifica email
+    if (!isValidEmail(email)) {
+      setError('Por favor, insira um email válido.');
+      return;
+    }
+
+    // Verifica senha
+    if (password.length < 6) {
+      setError('A senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+
+    // Se tudo estiver ok, navega para a próxima tela
     navigation.navigate('AppDrawer', {
-      screen: 'HomeTabs',       
+      screen: 'HomeTabs',
       params: {
-        screen: 'Home',         
+        screen: 'Home',
       },
     });
   };
@@ -35,6 +57,8 @@ export default function LoginScreen({ navigation }) {
         onChangeText={setPassword}
         secureTextEntry
       />
+
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
       <Button title="Entrar" onPress={handleLogin} />
     </View>
@@ -61,5 +85,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingHorizontal: 10,
     borderRadius: 8,
+  },
+  errorText: {
+    color: 'red',
+    marginBottom: 20,
+    textAlign: 'center',
   },
 });
