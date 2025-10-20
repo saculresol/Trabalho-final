@@ -110,6 +110,12 @@ export default function App() {
           component={AppDrawer}
           options={{ headerShown: false }}
         />
+
+<Stack.Screen
+          name="Transações"
+          component={TransacoesScreen}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
