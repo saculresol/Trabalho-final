@@ -73,7 +73,7 @@ function AppDrawer() {
       }}
     >
       <Drawer.Screen
-        name="HomeTabs"
+        name="Home"
         component={HomeTabs}
         options={{ drawerLabel: 'Home' }}
       />
@@ -85,22 +85,11 @@ function AppDrawer() {
       />
 
       <Drawer.Screen
-        name="Transacoes"
-        component={TransacoesScreen}
-        options={{ drawerLabel: 'Transações' }}
-      />
-
-      <Drawer.Screen
         name="Sobre"
         component={SobreScreen}
         options={{ drawerLabel: 'Sobre' }}
       />
 
-      <Drawer.Screen
-        name="Config"
-        component={ConfigScreen}
-        options={{ drawerLabel: 'Configurações' }}
-      />
     </Drawer.Navigator>
   );
 }
