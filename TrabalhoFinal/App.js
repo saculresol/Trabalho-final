@@ -13,6 +13,7 @@ import HistoricoScreen from './Screens/HistoricoScreen';
 import PerfilScreen from './Screens/PerfilScreen';
 import ConfigScreen from './Screens/ConfigScreen';
 import SobreScreen from './Screens/SobreScreen';
+import TransacoesScreen from './Screens/TransacoesScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -102,6 +103,18 @@ export default function App() {
         <Stack.Screen
           name="AppDrawer"
           component={AppDrawer}
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="Transações"
+          component={TransacoesScreen}
+          options={{ headerShown: false }}
+        />
+
+<Stack.Screen
+          name="Configurações"
+          component={ConfigScreen}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
