@@ -6,29 +6,28 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  // Função para validar email básico
   const isValidEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
   const handleLogin = () => {
-    // Limpa erros anteriores
+    
     setError('');
 
-    // Verifica email
+    
     if (!isValidEmail(email)) {
       setError('Por favor, insira um email válido.');
       return;
     }
 
-    // Verifica senha
+    
     if (password.length < 6) {
       setError('A senha deve ter pelo menos 6 caracteres.');
       return;
     }
 
-    // Se tudo estiver ok, navega para a próxima tela
+    
     navigation.navigate('AppDrawer', {
       screen: 'HomeTabs',
       params: {
