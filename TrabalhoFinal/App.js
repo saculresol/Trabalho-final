@@ -14,7 +14,6 @@ import PerfilScreen from './Screens/PerfilScreen';
 import ConfigScreen from './Screens/ConfigScreen';
 import SobreScreen from './Screens/SobreScreen';
 import TransacoesScreen from './Screens/TransacoesScreen';
-import AdminScreen from './Screens/AdminScreen'; 
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -39,6 +38,7 @@ function HomeTabs() {
           ),
         }}
       />
+
       <Tab.Screen
         name="Historico"
         component={HistoricoScreen}
@@ -49,6 +49,7 @@ function HomeTabs() {
           ),
         }}
       />
+
       <Tab.Screen
         name="Configuracoes"
         component={ConfigScreen}
@@ -71,9 +72,23 @@ function AppDrawer() {
         drawerInactiveTintColor: '#333',
       }}
     >
-      <Drawer.Screen name="Home" component={HomeTabs} options={{ drawerLabel: 'Home' }} />
-      <Drawer.Screen name="Perfil" component={PerfilScreen} options={{ drawerLabel: 'Perfil do aluno' }} />
-      <Drawer.Screen name="Sobre" component={SobreScreen} options={{ drawerLabel: 'Sobre' }} />
+      <Drawer.Screen
+        name="Home"
+        component={HomeTabs}
+        options={{ drawerLabel: 'Home' }}
+      />
+
+      <Drawer.Screen
+        name="Perfil"
+        component={PerfilScreen}
+        options={{ drawerLabel: 'Perfil do aluno' }}
+      />
+
+      <Drawer.Screen
+        name="Sobre"
+        component={SobreScreen}
+        options={{ drawerLabel: 'Sobre' }}
+      />
     </Drawer.Navigator>
   );
 }
@@ -82,10 +97,23 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Login">
-        <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="AppDrawer" component={AppDrawer} options={{ headerShown: false }} />
-        <Stack.Screen name="Transações" component={TransacoesScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Admin" component={AdminScreen} options={{ headerShown: false }} /> {/* ✅ nova rota */}
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="AppDrawer"
+          component={AppDrawer}
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="Transações"
+          component={TransacoesScreen}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

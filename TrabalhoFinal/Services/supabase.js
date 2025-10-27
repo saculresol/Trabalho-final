@@ -1,20 +1,6 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { createClient } from '@supabase/supabase-js'
 
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
-}
+const SUPABASE_URL = 'https://japjjntjoimcywydogiu.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImphcGpqbnRqb2ltY3l3eWRvZ2l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1NDY4MTcsImV4cCI6MjA3NzEyMjgxN30.ZjlqXA98BMujOgBEicbSQ5Wz3XNs-xW6fb1FqMDWrzw'
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
