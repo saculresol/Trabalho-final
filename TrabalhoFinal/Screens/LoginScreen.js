@@ -1,39 +1,39 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { loginUsuario } from '../Services/userService';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const isValidEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const handleLogin = () => {
-    
+  const handleLogin = async () => {
     setError('');
 
-    
-    if (!isValidEmail(email)) {
-      setError('Por favor, insira um email válido.');
+    if (!email || !password) {
+      setError('Preencha todos os campos.');
       return;
     }
 
-    
-    if (password.length < 6) {
-      setError('A senha deve ter pelo menos 6 caracteres.');
-      return;
-    }
+    try {
+      const usuario = await loginUsuario(email, password);
 
-    
-    navigation.navigate('AppDrawer', {
-      screen: 'HomeTabs',
-      params: {
-        screen: 'Home',
-      },
-    });
+      Alert.alert('Bem-vindo', usuario.nome);
+
+      if (usuario.tipo === 'admin') {
+        
+        navigation.navigate('Admin');
+      } else {
+       
+        navigation.navigate('AppDrawer', {
+          screen: 'HomeTabs',
+          params: { screen: 'Home' },
+        });
+      }
+
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
