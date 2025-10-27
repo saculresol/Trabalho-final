@@ -15,6 +15,11 @@ export default function LoginScreen({ navigation }) {
       return;
     }
 
+    if (senha.trim().length === 0) {
+      setError('A senha não pode conter apenas espaços em branco.');
+      return;
+    }
+
     try {
       const usuario = await loginUsuario(email, senha);
 
@@ -28,7 +33,6 @@ export default function LoginScreen({ navigation }) {
           params: { screen: 'Home' },
         });
       }
-
     } catch (err) {
       setError(err.message);
     }
