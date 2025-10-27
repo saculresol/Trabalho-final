@@ -10,7 +10,7 @@ export async function criarUsuario(nome, email, senha, tipo = 'comum') {
   return data[0]
 }
 
-export async function login(email, senha) {
+export async function loginUsuario(email, senha) {
   const { data, error } = await supabase
     .from('usuarios')
     .select('*')

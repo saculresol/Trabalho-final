@@ -4,27 +4,25 @@ import { loginUsuario } from '../Services/userService';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [senha, setSenha] = useState('');
   const [error, setError] = useState('');
 
   const handleLogin = async () => {
     setError('');
 
-    if (!email || !password) {
+    if (!email || !senha) {
       setError('Preencha todos os campos.');
       return;
     }
 
     try {
-      const usuario = await loginUsuario(email, password);
+      const usuario = await loginUsuario(email, senha);
 
       Alert.alert('Bem-vindo', usuario.nome);
 
       if (usuario.tipo === 'admin') {
-        
         navigation.navigate('Admin');
       } else {
-       
         navigation.navigate('AppDrawer', {
           screen: 'HomeTabs',
           params: { screen: 'Home' },
@@ -52,8 +50,8 @@ export default function LoginScreen({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="Senha"
-        value={password}
-        onChangeText={setPassword}
+        value={senha}
+        onChangeText={setSenha}
         secureTextEntry
       />
 

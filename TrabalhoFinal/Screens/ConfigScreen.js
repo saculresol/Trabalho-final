@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, Button, TouchableOpacity } from 'react-native';
 import { useState } from 'react';
 
 export default function ConfigScreen({ navigation }) {
-  const [tema, setTema] = useState('light'); // tema inicial
+  const [tema, setTema] = useState('light'); 
 
   const irParaTransacoes = () => {
     navigation.navigate('Transacoes');

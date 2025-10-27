@@ -9,11 +9,11 @@ import { AntDesign } from '@expo/vector-icons';
 
 import LoginScreen from './Screens/LoginScreen';
 import HomeScreen from './Screens/HomeScreen';
-import HistoricoScreen from './Screens/HistoricoScreen';
 import PerfilScreen from './Screens/PerfilScreen';
 import ConfigScreen from './Screens/ConfigScreen';
 import SobreScreen from './Screens/SobreScreen';
 import TransacoesScreen from './Screens/TransacoesScreen';
+
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -28,6 +28,7 @@ function HomeTabs() {
         tabBarInactiveTintColor: '#999',
       }}
     >
+      
       <Tab.Screen
         name="Home"
         component={HomeScreen}
@@ -35,17 +36,6 @@ function HomeTabs() {
           tabBarLabel: 'Início',
           tabBarIcon: ({ color, size }) => (
             <AntDesign name="home" color={color} size={size} />
-          ),
-        }}
-      />
-
-      <Tab.Screen
-        name="Historico"
-        component={HistoricoScreen}
-        options={{
-          tabBarLabel: 'Histórico',
-          tabBarIcon: ({ color, size }) => (
-            <AntDesign name="book" color={color} size={size} />
           ),
         }}
       />
