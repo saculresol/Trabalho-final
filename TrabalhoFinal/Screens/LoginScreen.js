@@ -49,6 +49,7 @@ export default function LoginScreen({ navigation }) {
         onChangeText={setEmail}
         keyboardType="email-address"
         autoCapitalize="none"
+        placeholderTextColor="#888"
       />
 
       <TextInput
@@ -57,11 +58,14 @@ export default function LoginScreen({ navigation }) {
         value={senha}
         onChangeText={setSenha}
         secureTextEntry
+        placeholderTextColor="#888"
       />
 
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-      <Button title="Entrar" onPress={handleLogin} />
+      <View style={styles.buttonContainer}>
+        <Button title="Entrar" onPress={handleLogin} color="#1E90FF" />
+      </View>
     </View>
   );
 }
@@ -70,26 +74,42 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    padding: 20,
-    backgroundColor: '#fff',
+    padding: 24,
+    backgroundColor: '#F2F4F7', // fundo leve e moderno
   },
   title: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: 'bold',
+    color: '#1E293B',
     marginBottom: 40,
     textAlign: 'center',
   },
   input: {
-    height: 50,
-    borderColor: '#ccc',
+    height: 55,
+    backgroundColor: '#fff',
+    borderColor: '#E2E8F0',
     borderWidth: 1,
     marginBottom: 20,
-    paddingHorizontal: 10,
-    borderRadius: 8,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+    fontSize: 16,
+    color: '#111827',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  buttonContainer: {
+    marginTop: 10,
+    borderRadius: 10,
+    overflow: 'hidden',
   },
   errorText: {
-    color: 'red',
+    color: '#DC2626',
     marginBottom: 20,
     textAlign: 'center',
+    fontSize: 15,
+    fontWeight: '500',
   },
 });
