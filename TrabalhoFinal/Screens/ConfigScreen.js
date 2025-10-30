@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { useState } from 'react';
 
 export default function ConfigScreen({ navigation }) {
-  const [tema, setTema] = useState('light'); 
+  const [tema, setTema] = useState('light');
 
   const irParaTransacoes = () => {
     navigation.navigate('Transacoes');
@@ -15,16 +15,29 @@ export default function ConfigScreen({ navigation }) {
 
   const estilosAtuais =
     tema === 'light'
-      ? { backgroundColor: '#F8F9FA', color: '#2D3142', botaoBg: '#E5E7EB', botaoTexto: '#1F2937' }
-      : { backgroundColor: '#1F2937', color: '#F9FAFB', botaoBg: '#374151', botaoTexto: '#F9FAFB' };
+      ? {
+          backgroundColor: '#F8F9FA',
+          color: '#2D3142',
+          botaoBg: '#E5E7EB',
+          botaoTexto: '#1F2937',
+          borda: '#D1D5DB',
+        }
+      : {
+          backgroundColor: '#1F2937',
+          color: '#F9FAFB',
+          botaoBg: '#374151',
+          botaoTexto: '#F9FAFB',
+          borda: '#4B5563',
+        };
 
   return (
     <View style={[styles.container, { backgroundColor: estilosAtuais.backgroundColor }]}>
       <Text style={[styles.title, { color: estilosAtuais.color }]}>Configurações</Text>
 
       <TouchableOpacity
-        style={[styles.botao, { backgroundColor: estilosAtuais.botaoBg }]}
+        style={[styles.botao, { backgroundColor: estilosAtuais.botaoBg, borderColor: estilosAtuais.borda }]}
         onPress={irParaTransacoes}
+        activeOpacity={0.8}
       >
         <Text style={[styles.botaoTexto, { color: estilosAtuais.botaoTexto }]}>
           Ir para Transações
@@ -32,8 +45,9 @@ export default function ConfigScreen({ navigation }) {
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={[styles.botaoTema, { borderColor: estilosAtuais.color }]}
+        style={[styles.botaoTema, { borderColor: estilosAtuais.borda }]}
         onPress={alternarTema}
+        activeOpacity={0.8}
       >
         <Text style={[styles.botaoTemaTexto, { color: estilosAtuais.color }]}>
           Mudar para tema {tema === 'light' ? 'escuro' : 'claro'}
@@ -57,9 +71,9 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
-    marginBottom: 24,
+    marginBottom: 28,
     textAlign: 'center',
   },
   botao: {
@@ -68,11 +82,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     marginBottom: 20,
+    borderWidth: 1,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 3,
-    elevation: 2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   botaoTexto: {
     fontSize: 16,
@@ -90,7 +105,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     fontSize: 14,
-    marginTop: 40,
+    marginTop: 50,
     textAlign: 'center',
   },
 });
