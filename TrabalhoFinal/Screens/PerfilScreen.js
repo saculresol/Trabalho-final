@@ -6,13 +6,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export default function PerfilScreen({ navigation }) {
   const [nome, setNome] = useState('');
   const [turma, setTurma] = useState('');
+  const [imagem, setImagem] = useState(null);
 
   const carregarDados = async () => {
     try {
       const nomeSalvo = await AsyncStorage.getItem('nome');
       const turmaSalva = await AsyncStorage.getItem('turma');
+      const imagemSalva = await AsyncStorage.getItem('imagem');
       if (nomeSalvo) setNome(nomeSalvo);
       if (turmaSalva) setTurma(turmaSalva);
+      if (imagemSalva) setImagem(imagemSalva);
     } catch (error) {
       console.error('Erro ao carregar os dados:', error);
     }
@@ -30,7 +33,7 @@ export default function PerfilScreen({ navigation }) {
     <View style={styles.container}>
       <Image
         source={{
-          uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ71x_K2UcszdyBiq6m5BzXxaCwEgCSc74gsQ&s',
+          uri: imagem || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ71x_K2UcszdyBiq6m5BzXxaCwEgCSc74gsQ&s',
         }}
         style={{ width: 100, height: 100, borderRadius: 100 }}
       />
