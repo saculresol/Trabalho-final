@@ -14,7 +14,6 @@ import ConfigScreen from './Screens/ConfigScreen';
 import SobreScreen from './Screens/SobreScreen';
 import TransacoesScreen from './Screens/TransacoesScreen';
 
-
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const Drawer = createDrawerNavigator();
@@ -23,12 +22,10 @@ function HomeTabs() {
   return (
     <Tab.Navigator
       screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: '#A4BB49',
         tabBarInactiveTintColor: '#999',
+        tabBarActiveTintColor: '#000',
       }}
     >
-      
       <Tab.Screen
         name="Home"
         component={HomeScreen}
@@ -67,13 +64,11 @@ function AppDrawer() {
         component={HomeTabs}
         options={{ drawerLabel: 'Home' }}
       />
-
       <Drawer.Screen
         name="Perfil"
         component={PerfilScreen}
         options={{ drawerLabel: 'Perfil do aluno' }}
       />
-
       <Drawer.Screen
         name="Sobre"
         component={SobreScreen}
@@ -92,13 +87,11 @@ export default function App() {
           component={LoginScreen}
           options={{ headerShown: false }}
         />
-
         <Stack.Screen
           name="AppDrawer"
           component={AppDrawer}
           options={{ headerShown: false }}
         />
-
         <Stack.Screen
           name="Transações"
           component={TransacoesScreen}
