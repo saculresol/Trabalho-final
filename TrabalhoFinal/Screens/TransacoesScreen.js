@@ -1,5 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Button } from 'react-native';
+import { ThemeContext } from '../Context/ThemeContext';
+import { useContext } from 'react';
 
 export default function ConfigScreen({ navigation }) {
   return (
@@ -12,7 +14,7 @@ export default function ConfigScreen({ navigation }) {
     </View>
   );
 }
-
+const { theme, toggleTheme } = useContext(ThemeContext);
 const styles = StyleSheet.create({
   container: {
     flex: 1,

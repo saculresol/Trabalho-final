@@ -16,4 +16,3 @@ export function ThemeProvider({ children }) {
   );
 }
 
-const {theme, toggleTheme} = useContext(ThemeContext);
