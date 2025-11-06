@@ -18,25 +18,33 @@ export default function HomeScreen() {
     setQuantia('');
   };
 
+  function ComprandoTicket(item) {
+    if (tickets > 0) {
+      setTickets(tickets - 1);
+      Alert.alert('Compra realizada com ticket!');
+    } else {
+      Alert.alert('Erro', 'Você não tem tickets suficientes.');
+    }
+  }
+
+  function ComprandoSaldo(item) {
+    if (saldo >= item.preco) {
+      setSaldo(saldo - item.preco);
+      Alert.alert('Compra realizada com saldo!');
+    } else {
+      Alert.alert('Erro', 'Saldo insuficiente.');
+    }
+  }
+
   useEffect(() => {
-    
-    fetchMeals().then(meals => setCardapio(meals));
+    fetchMeals().then(setCardapio);
 
-    
     const interval = setInterval(() => {
-      Alert.alert('Novo Ticket', 'Um novo ticket foi adicionado!');
       setTickets(prev => prev + 1);
+      Alert.alert('Novo Ticket', 'Um novo ticket foi adicionado!');
     }, 86400000);
 
-    const resetInterval = setInterval(() => {
-      Alert.alert('Tickets redefinidos', 'Os tickets foram redefinidos para 1!');
-      setTickets(1);
-    }, 86400000);
-
-    return () => {
-      clearInterval(interval);
-      clearInterval(resetInterval);
-    };
+    return () => clearInterval(interval);
   }, []);
 
   const renderItem = ({ item }) => (
@@ -45,8 +53,21 @@ export default function HomeScreen() {
       <Text style={styles.cardTitle}>{item.nome}</Text>
       <Text style={styles.cardDescription}>{item.descricao.slice(0,100)}…</Text>
       <Text style={styles.cardPrice}>R$ {item.preco}</Text>
-      <TouchableOpacity style={styles.cardButton} onPress={() => Alert.alert('Item Selecionado', `Você selecionou: ${item.nome}`)}>
-        <Text style={styles.cardButtonText}>Adicionar</Text>
+      <TouchableOpacity
+        style={styles.cardButton}
+        onPress={() => 
+          Alert.alert(
+            'Usar saldo ou ticket',
+            'Escolha uma forma de pagamento:',
+            [
+              { text: 'Ticket', onPress: () => ComprandoTicket(item) },
+              { text: 'Saldo', onPress: () => ComprandoSaldo(item) },
+              { text: 'Cancelar', style: 'cancel' },
+            ]
+          )
+        }
+      >
+        <Text style={styles.cardButtonText}>Comprar</Text>
       </TouchableOpacity>
     </View>
   );
