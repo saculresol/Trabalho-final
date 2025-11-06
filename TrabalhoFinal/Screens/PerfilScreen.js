@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ThemeContext } from '../Context/ThemeContext';
+import { useContext } from 'react';
 
 export default function PerfilScreen({ navigation }) {
   const [nome, setNome] = useState('');
   const [turma, setTurma] = useState('');
   const [imagem, setImagem] = useState(null);
-
+const { theme, toggleTheme } = useContext(ThemeContext);
   const carregarDados = async () => {
     try {
       const nomeSalvo = await AsyncStorage.getItem('nome');

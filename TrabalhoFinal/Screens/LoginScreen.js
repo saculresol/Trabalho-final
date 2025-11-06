@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { loginUsuario } from '../Services/userService';
+import { ThemeContext } from '../Context/ThemeContext';
+import { useContext } from 'react';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [error, setError] = useState('');
-
+const { theme, toggleTheme } = useContext(ThemeContext);
   const handleLogin = async () => {
     setError('');
 

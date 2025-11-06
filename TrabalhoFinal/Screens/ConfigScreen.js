@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
-
+import { ThemeContext } from '../Context/ThemeContext';
+import { useContext } from 'react';
 export default function ConfigScreen({ navigation }) {
   const [nome, setNome] = useState('');
   const [turma, setTurma] = useState('');
   const [tema, setTema] = useState('light');
-
+  const { theme, toggleTheme } = useContext(ThemeContext);
   const salvarDados = async () => {
     if (!nome || !turma) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos.');
@@ -57,19 +58,19 @@ export default function ConfigScreen({ navigation }) {
   const estilosAtuais =
     tema === 'light'
       ? {
-          backgroundColor: '#F8F9FA',
-          color: '#2D3142',
-          botaoBg: '#E5E7EB',
-          botaoTexto: '#1F2937',
-          borda: '#D1D5DB',
-        }
+        backgroundColor: '#F8F9FA',
+        color: '#2D3142',
+        botaoBg: '#E5E7EB',
+        botaoTexto: '#1F2937',
+        borda: '#D1D5DB',
+      }
       : {
-          backgroundColor: '#1F2937',
-          color: '#F9FAFB',
-          botaoBg: '#374151',
-          botaoTexto: '#F9FAFB',
-          borda: '#4B5563',
-        };
+        backgroundColor: '#1F2937',
+        color: '#F9FAFB',
+        botaoBg: '#374151',
+        botaoTexto: '#F9FAFB',
+        borda: '#4B5563',
+      };
 
   return (
     <View style={[styles.container, { backgroundColor: estilosAtuais.backgroundColor }]}>

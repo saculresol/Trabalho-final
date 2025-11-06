@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Button, TextInput, Alert, FlatList, TouchableOpacity, Image } from 'react-native';
 import { fetchMeals } from '../Services/mealService';
-import { AntDesign } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -10,7 +8,7 @@ export default function HomeScreen() {
   const [quantia, setQuantia] = useState('');
   const [tickets, setTickets] = useState(1);
   const [cardapio, setCardapio] = useState([]);
-
+  const {theme, toggleTheme} = useContext(ThemeContext); 
   const adicionarSaldo = () => {
     const valor = parseFloat(quantia);
     if (isNaN(valor) || valor <= 0) {
