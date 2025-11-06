@@ -1,7 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, ScrollView } from 'react-native';
-import { ThemeContext } from '../Context/ThemeContext';
-import { useContext } from 'react';
+
 export default function TransacoesScreen() {  
   return (
     <View style={styles.container}>
@@ -24,7 +23,7 @@ export default function TransacoesScreen() {
     </View>
   );
 }
-const { theme, toggleTheme } = useContext(ThemeContext);
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -2,13 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
-import { ThemeContext } from '../Context/ThemeContext';
-import { useContext } from 'react';
+
 export default function ConfigScreen({ navigation }) {
   const [nome, setNome] = useState('');
   const [turma, setTurma] = useState('');
   const [tema, setTema] = useState('light');
-  const { theme, toggleTheme } = useContext(ThemeContext);
   const salvarDados = async () => {
     if (!nome || !turma) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos.');

@@ -1,7 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { ThemeContext } from '../Context/ThemeContext';
-import { useContext } from 'react';
 
 export default function AdminScreen() {
   return (
@@ -11,7 +9,7 @@ export default function AdminScreen() {
     </View>
   );
 }
-const { theme, toggleTheme } = useContext(ThemeContext);
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

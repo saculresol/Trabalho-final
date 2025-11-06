@@ -12,8 +12,7 @@ import HomeScreen from './Screens/HomeScreen';
 import PerfilScreen from './Screens/PerfilScreen';
 import ConfigScreen from './Screens/ConfigScreen';
 import SobreScreen from './Screens/SobreScreen';
-import TransacoesScreen from './Screens/TransacoesScreen';
-import { ThemeProvider } from './Context/ThemeContext';
+import TransacoesScreen from './Screens/TransacoesScreen'; // se existir essa tela
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -37,7 +36,6 @@ function HomeTabs() {
           ),
         }}
       />
-
       <Tab.Screen
         name="Configuracoes"
         component={ConfigScreen}
@@ -81,26 +79,24 @@ function AppDrawer() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName="Login">
-          <Stack.Screen
-            name="Login"
-            component={LoginScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="AppDrawer"
-            component={AppDrawer}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Transações"
-            component={TransacoesScreen}
-            options={{ headerShown: false }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </ThemeProvider>
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Login">
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="AppDrawer"
+          component={AppDrawer}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Transações"
+          component={TransacoesScreen}
+          options={{ headerShown: false }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
