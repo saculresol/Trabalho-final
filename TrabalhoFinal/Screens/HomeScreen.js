@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Button, TextInput, Alert, FlatList, TouchableOpacity, Image } from 'react-native';
 import { fetchMeals } from '../Services/mealService';
+import { AntDesign } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 export default function HomeScreen() {
+  const navigation = useNavigation();
   const [saldo, setSaldo] = useState(0);
   const [quantia, setQuantia] = useState('');
   const [tickets, setTickets] = useState(1);
@@ -74,6 +77,15 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
+      
+      <TouchableOpacity
+        style={styles.transacoesButton}
+        onPress={() => navigation.navigate('Transações')}
+      >
+        <AntDesign name="profile" size={20} color="#fff" style={{ marginRight: 5 }} />
+        <Text style={styles.transacoesButtonText}>Histórico de Transações</Text>
+      </TouchableOpacity>
+
       <Text style={styles.title}>Saldo: R$ {saldo.toFixed(2)}</Text>
       <Text style={styles.title}>Tickets: {tickets}</Text>
 
@@ -110,7 +122,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     shadowColor: '#000',
     shadowOpacity: 0.1,
-    shadowOffset: { width:0, height:2 },
+    shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
     elevation: 3,
   },
@@ -118,6 +130,23 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 5 },
   cardDescription: { fontSize: 14, color: '#6B7280', marginBottom: 5 },
   cardPrice: { fontSize: 16, fontWeight: 'bold', marginBottom: 10 },
-  cardButton: { backgroundColor: '#A4BB49', paddingVertical:10, borderRadius:8, alignItems:'center' },
-  cardButtonText: { color:'#fff', fontSize:16, fontWeight:'bold' },
+  cardButton: { backgroundColor: '#A4BB49', paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
+  cardButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  transacoesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#A4BB49',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    zIndex: 10,
+  },
+  transacoesButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
 });
