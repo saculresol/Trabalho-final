@@ -55,7 +55,7 @@ export default function TransacoesScreen() {
     <View style={styles.container}>
      
       <TouchableOpacity style={styles.voltarButton} onPress={() => navigation.goBack()}>
-        <AntDesign name="arrowleft" size={22} color="#fff" />
+        <AntDesign name="left" size={22} color="#fff" />
         <Text style={styles.voltarText}>Voltar</Text>
       </TouchableOpacity>
 
