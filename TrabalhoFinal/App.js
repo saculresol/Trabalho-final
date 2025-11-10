@@ -13,6 +13,7 @@ import PerfilScreen from './Screens/PerfilScreen';
 import ConfigScreen from './Screens/ConfigScreen';
 import SobreScreen from './Screens/SobreScreen';
 import TransacoesScreen from './Screens/TransacoesScreen';
+import { ThemeProvider } from './Context/ThemeContext';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -27,16 +28,16 @@ function HomeTabs() {
       }}
     >
       <Tab.Screen
-        name="HomeTab"
+        name="Home"
         component={HomeScreen}
         options={{
           tabBarLabel: 'Início',
           tabBarIcon: ({ color, size }) => (
             <AntDesign name="home" color={color} size={size} />
           ),
-          headerShown: false,
         }}
       />
+
       <Tab.Screen
         name="Configuracoes"
         component={ConfigScreen}
@@ -45,7 +46,6 @@ function HomeTabs() {
           tabBarIcon: ({ color, size }) => (
             <AntDesign name="setting" color={color} size={size} />
           ),
-          headerShown: false,
         }}
       />
     </Tab.Navigator>
@@ -61,9 +61,9 @@ function AppDrawer() {
       }}
     >
       <Drawer.Screen
-        name="HomeDrawer"
+        name="Home"
         component={HomeTabs}
-        options={{ drawerLabel: 'Home', headerShown: false }}
+        options={{ drawerLabel: 'Home' }}
       />
       <Drawer.Screen
         name="Perfil"
@@ -81,24 +81,26 @@ function AppDrawer() {
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login">
-        <Stack.Screen
-          name="Login"
-          component={LoginScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="AppDrawer"
-          component={AppDrawer}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Transações"
-          component={TransacoesScreen}
-          options={{ headerShown: false }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <ThemeProvider>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Login">
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="AppDrawer"
+            component={AppDrawer}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Transações"
+            component={TransacoesScreen}
+            options={{ headerShown: false }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </ThemeProvider>
   );
 }
