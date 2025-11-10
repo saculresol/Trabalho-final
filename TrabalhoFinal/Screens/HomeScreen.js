@@ -21,7 +21,16 @@ export default function HomeScreen() {
     setSaldo(saldo + valor);
     setQuantia('');
   };
-
+  function gerarSA(tamanho) {
+    const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let resultado = '';
+    for (let i = 0; i < tamanho; i++) {
+      const indice = Math.floor(Math.random() * caracteres.length);
+      resultado += caracteres[indice];
+    }
+    return resultado;
+  }
+  
   async function salvarTransacao(item, tipo) {
     const novaTransacao = {
       nome: item.nome,
@@ -44,7 +53,7 @@ export default function HomeScreen() {
     if (tickets > 0) {
       setTickets(tickets - 1);
       salvarTransacao(item, 'ticket'); 
-      Alert.alert('Compra realizada com ticket!');
+      Alert.alert('Compra realizada com ticket!', 'seu cogigo de autorização é: ' + gerarSA(15));
     } else {
       Alert.alert('Erro', 'Você não tem tickets suficientes.');
     }
