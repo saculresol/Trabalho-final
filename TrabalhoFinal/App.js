@@ -12,7 +12,7 @@ import HomeScreen from './Screens/HomeScreen';
 import PerfilScreen from './Screens/PerfilScreen';
 import ConfigScreen from './Screens/ConfigScreen';
 import SobreScreen from './Screens/SobreScreen';
-import TransacoesScreen from './Screens/TransacoesScreen'; // se existir essa tela
+import TransacoesScreen from './Screens/TransacoesScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -27,13 +27,14 @@ function HomeTabs() {
       }}
     >
       <Tab.Screen
-        name="Home"
+        name="HomeTab"
         component={HomeScreen}
         options={{
           tabBarLabel: 'Início',
           tabBarIcon: ({ color, size }) => (
             <AntDesign name="home" color={color} size={size} />
           ),
+          headerShown: false,
         }}
       />
       <Tab.Screen
@@ -44,6 +45,7 @@ function HomeTabs() {
           tabBarIcon: ({ color, size }) => (
             <AntDesign name="setting" color={color} size={size} />
           ),
+          headerShown: false,
         }}
       />
     </Tab.Navigator>
@@ -59,9 +61,9 @@ function AppDrawer() {
       }}
     >
       <Drawer.Screen
-        name="Home"
+        name="HomeDrawer"
         component={HomeTabs}
-        options={{ drawerLabel: 'Home' }}
+        options={{ drawerLabel: 'Home', headerShown: false }}
       />
       <Drawer.Screen
         name="Perfil"
