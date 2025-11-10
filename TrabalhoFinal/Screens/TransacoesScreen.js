@@ -8,7 +8,6 @@ export default function TransacoesScreen() {
   const navigation = useNavigation();
   const [transacoes, setTransacoes] = useState([]);
 
-  
   useEffect(() => {
     carregarTransacoes();
   }, []);
@@ -42,11 +41,11 @@ export default function TransacoesScreen() {
 
   const renderItem = ({ item }) => (
     <View style={styles.item}>
-      <Text style={styles.nome}>{item.nomeItem}</Text>
+      <Text style={styles.nome}>{item.nome}</Text>
       <Text style={styles.tipo}>
-        {item.tipoPagamento === 'ticket'
+        {item.tipo === 'ticket'
           ? '🎫 Pago com Ticket'
-          : `💰 Pago com Saldo (R$ ${item.valor.toFixed(2)})`}
+          : `💰 Pago com Saldo (R$ ${item.preco.toFixed(2)})`}
       </Text>
       <Text style={styles.data}>📅 {item.data}</Text>
     </View>
@@ -54,7 +53,7 @@ export default function TransacoesScreen() {
 
   return (
     <View style={styles.container}>
-      
+     
       <TouchableOpacity style={styles.voltarButton} onPress={() => navigation.goBack()}>
         <AntDesign name="arrowleft" size={22} color="#fff" />
         <Text style={styles.voltarText}>Voltar</Text>
@@ -88,7 +87,6 @@ export default function TransacoesScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8F9FA', padding: 20 },
-  
   voltarButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -99,15 +97,9 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginBottom: 20,
   },
-  voltarText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    marginLeft: 6,
-  },
-
+  voltarText: { color: '#fff', fontWeight: 'bold', marginLeft: 6 },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
   titulo: { fontSize: 20, fontWeight: 'bold', marginLeft: 10, color: '#333' },
-
   item: {
     backgroundColor: '#fff',
     borderRadius: 8,
@@ -118,9 +110,7 @@ const styles = StyleSheet.create({
   nome: { fontSize: 16, fontWeight: 'bold', color: '#000' },
   tipo: { fontSize: 14, color: '#555', marginVertical: 5 },
   data: { fontSize: 12, color: '#777' },
-
   vazio: { textAlign: 'center', marginTop: 50, color: '#888' },
-
   botaoLimpar: {
     flexDirection: 'row',
     alignItems: 'center',

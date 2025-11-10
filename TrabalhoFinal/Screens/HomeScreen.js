@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Button, TextInput, Alert, FlatList, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, Button, TextInput, Alert, FlatList, TouchableOpacity, Image} from 'react-native';
 import { fetchMeals } from '../Services/mealService';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -21,9 +22,27 @@ export default function HomeScreen() {
     setQuantia('');
   };
 
+  async function salvarTransacao(item, tipo) {
+    const nova = {
+      nome: item.nome,
+      preco: item.preco,
+      tipo,
+      data: new Date().toLocaleString(),
+    };
+    try {
+      const data = await AsyncStorage.getItem('transacoes');
+      const transacoes = data ? JSON.parse(data) : [];
+      transacoes.push(nova);
+      await AsyncStorage.setItem('transacoes', JSON.stringify(transacoes));
+    } catch (error) {
+      console.error('Erro ao salvar transação:', error);
+    }
+  }
+
   function ComprandoTicket(item) {
     if (tickets > 0) {
       setTickets(tickets - 1);
+      salvarTransacao(item, 'ticket');
       Alert.alert('Compra realizada com ticket!');
     } else {
       Alert.alert('Erro', 'Você não tem tickets suficientes.');
@@ -33,6 +52,7 @@ export default function HomeScreen() {
   function ComprandoSaldo(item) {
     if (saldo >= item.preco) {
       setSaldo(saldo - item.preco);
+      salvarTransacao(item, 'saldo');
       Alert.alert('Compra realizada com saldo!');
     } else {
       Alert.alert('Erro', 'Saldo insuficiente.');
@@ -45,7 +65,7 @@ export default function HomeScreen() {
     const interval = setInterval(() => {
       setTickets(prev => prev + 1);
       Alert.alert('Novo Ticket', 'Um novo ticket foi adicionado!');
-    }, 86400000);
+    }, 86400000); // 24h
 
     return () => clearInterval(interval);
   }, []);
@@ -54,11 +74,11 @@ export default function HomeScreen() {
     <View style={styles.card}>
       <Image source={{ uri: item.imagem }} style={styles.cardImage} />
       <Text style={styles.cardTitle}>{item.nome}</Text>
-      <Text style={styles.cardDescription}>{item.descricao.slice(0,100)}…</Text>
+      <Text style={styles.cardDescription}>{item.descricao.slice(0, 100)}…</Text>
       <Text style={styles.cardPrice}>R$ {item.preco}</Text>
       <TouchableOpacity
         style={styles.cardButton}
-        onPress={() => 
+        onPress={() =>
           Alert.alert(
             'Usar saldo ou ticket',
             'Escolha uma forma de pagamento:',
@@ -77,7 +97,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-     
+      
       <TouchableOpacity
         style={styles.transacoesButton}
         onPress={() => navigation.navigate('Transações')}
