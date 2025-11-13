@@ -38,11 +38,22 @@ export default function PerfilScreen({ navigation }) {
       />
       <Text>Nome: {nome}</Text>
       <Text>Turma: {turma}</Text>
+      <Text style={styles.footer}>Versão 0.1.0 • Desenvolvido por Equipe Cantina Lhey</Text>
       <StatusBar style="auto" />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
+  container: { flex: 1, 
+    backgroundColor: '#fff', 
+    alignItems: 'center', 
+    justifyContent: 'center' },
+
+    footer: {
+      fontSize: 14,
+      color: '#9CA3AF',
+      marginTop: 30,
+      textAlign: 'center',
+    },
 });

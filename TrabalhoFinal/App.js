@@ -61,7 +61,7 @@ function AppDrawer() {
       }}
     >
       <Drawer.Screen
-        name="Home"
+        name="Home-drawer"
         component={HomeTabs}
         options={{ drawerLabel: 'Home' }}
       />
