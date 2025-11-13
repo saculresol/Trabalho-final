@@ -3,10 +3,12 @@ import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../Context/ThemeContext';
 
 export default function TransacoesScreen() {
   const navigation = useNavigation();
   const [transacoes, setTransacoes] = useState([]);
+  const { colors, theme, themeColors } = useTheme();
 
   useEffect(() => {
     carregarTransacoes();
@@ -52,7 +54,7 @@ export default function TransacoesScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
      
       <TouchableOpacity style={styles.voltarButton} onPress={() => navigation.goBack()}>
         <AntDesign name="left" size={22} color="#fff" />
@@ -61,11 +63,11 @@ export default function TransacoesScreen() {
 
       <View style={styles.header}>
         <AntDesign name="profile" size={24} color="#A4BB49" />
-        <Text style={styles.titulo}>Histórico de Transações</Text>
+        <Text style={[styles.titulo, { color: colors.text }]}>Histórico de Transações</Text>
       </View>
 
       {transacoes.length === 0 ? (
-        <Text style={styles.vazio}>Nenhuma transação encontrada</Text>
+        <Text style={[styles.vazio, { color: colors.text }]}>Nenhuma transação encontrada</Text>
       ) : (
         <FlatList
           data={transacoes}

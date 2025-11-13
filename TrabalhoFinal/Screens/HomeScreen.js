@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Button, TextInput, Alert, FlatList, TouchableOpacity, Image } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { fetchMeals } from '../Services/mealService';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../Context/ThemeContext';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -11,6 +13,7 @@ export default function HomeScreen() {
   const [quantia, setQuantia] = useState('');
   const [tickets, setTickets] = useState(1);
   const [cardapio, setCardapio] = useState([]);
+   const { colors, theme, themeColors } = useTheme();
 
   const adicionarSaldo = () => {
     const valor = parseFloat(quantia);
@@ -106,7 +109,7 @@ export default function HomeScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
      
       <TouchableOpacity
         style={styles.transacoesButton}
@@ -116,25 +119,26 @@ export default function HomeScreen() {
         <Text style={styles.transacoesButtonText}>Histórico de Transações</Text>
       </TouchableOpacity>
 
-      <Text style={styles.title}>Saldo: R$ {saldo.toFixed(2)}</Text>
-      <Text style={styles.title}>Tickets: {tickets}</Text>
+      <Text style={[styles.title, { color: colors.text }]}>Saldo: R$ {saldo.toFixed(2)}</Text>
+      <Text style={[styles.title, { color: colors.text }]}>Tickets: {tickets}</Text>
 
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: colors.text }]}
         placeholder="Adicionar saldo"
         keyboardType="numeric"
         value={quantia}
         onChangeText={setQuantia}
       />
-      <Button title="Adicionar Saldo" onPress={adicionarSaldo} />
+      <Button  style={[styles.input, { color: colors.text }]} title="Adicionar Saldo" onPress={adicionarSaldo} />
 
-      <Text style={styles.subtitle}>Cardápio</Text>
+      <Text style={[styles.subtitle, { color: colors.text }]}>Cardápio</Text>
       <FlatList
         data={cardapio}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
         contentContainerStyle={styles.cardapioContainer}
       />
+      <StatusBar style={theme === 'dark' ? 'light' : 'dark'} backgroundColor={colors.background} />
     </View>
   );
 }

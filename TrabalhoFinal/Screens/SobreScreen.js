@@ -1,25 +1,31 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, ScrollView } from 'react-native';
+import { useTheme } from '../Context/ThemeContext';
 
 export default function TransacoesScreen() {  
+  
+  const { colors, theme, themeColors } = useTheme();
+
   return (
-    <View style={styles.container}>
+    
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar style="dark" />
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.title}>Sobre o App Cantina Lhey</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Sobre o App Cantina Lhey</Text>
         
-        <Text style={styles.text}>
+        <Text style={[styles.text, { color: colors.text }]}>
           Nosso app foi criado para ajudar no gerenciamento de cantinas escolares. 
           Nele teremos o cardápio informando os lanches que a instituição vende.
         </Text>
 
-        <Text style={styles.text}>
+        <Text style={[styles.text, { color: colors.text }]}>
           Cada aluno tem direito a um ticket diário. Caso o aluno queira comer mais, 
           ele pode adicionar mais saldo à sua conta com um valor desejado.
         </Text>
 
         <Text style={styles.footer}>Versão 0.1.0 • Desenvolvido por Equipe Cantina Lhey</Text>
       </ScrollView>
+      <StatusBar style={theme === 'dark' ? 'light' : 'dark'} backgroundColor={colors.background} />
     </View>
   );
 }

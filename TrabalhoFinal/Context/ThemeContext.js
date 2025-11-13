@@ -30,6 +30,7 @@ export function ThemeProvider({ children }) {
         theme,
         toggleTheme,
         colors: themeColors[theme], 
+        themeColors
       }}
     >
       {children}
