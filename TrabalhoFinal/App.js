@@ -1,7 +1,7 @@
 import React from 'react';
 import 'react-native-gesture-handler';
 import 'react-native-reanimated';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native'; // 👈 adicionado
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator } from '@react-navigation/drawer';
@@ -13,7 +13,7 @@ import PerfilScreen from './Screens/PerfilScreen';
 import ConfigScreen from './Screens/ConfigScreen';
 import SobreScreen from './Screens/SobreScreen';
 import TransacoesScreen from './Screens/TransacoesScreen';
-import { ThemeProvider } from './Context/ThemeContext';
+import { ThemeProvider, useTheme } from './Context/ThemeContext'; 
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -79,28 +79,37 @@ function AppDrawer() {
   );
 }
 
+function AppContent() {
+  const { theme } = useTheme(); 
+  const navigationTheme = theme === 'dark' ? DarkTheme : DefaultTheme; 
+
+  return (
+    <NavigationContainer theme={navigationTheme}>
+      <Stack.Navigator initialRouteName="Login">
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="AppDrawer"
+          component={AppDrawer}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Transações"
+          component={TransacoesScreen}
+          options={{ headerShown: false }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
 export default function App() {
   return (
     <ThemeProvider>
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName="Login">
-          <Stack.Screen
-            name="Login"
-            component={LoginScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="AppDrawer"
-            component={AppDrawer}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Transações"
-            component={TransacoesScreen}
-            options={{ headerShown: false }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <AppContent /> 
     </ThemeProvider>
   );
 }
