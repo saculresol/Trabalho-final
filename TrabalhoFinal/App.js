@@ -14,6 +14,10 @@ import ConfigScreen from './Screens/ConfigScreen';
 import SobreScreen from './Screens/SobreScreen';
 import TransacoesScreen from './Screens/TransacoesScreen';
 import AdminScreen from './Screens/AdminScreen'
+import ConCanScreen from './Screens/ConCanScreen';
+import GcanScreen from './Screens/GCanScreen';
+import GPerScreen from './Screens/GPerScreen';
+import GSalScreen from './Screens/GSalScreen';
 import { ThemeProvider, useTheme } from './Context/ThemeContext'; 
 
 const Stack = createNativeStackNavigator();
@@ -53,6 +57,33 @@ function HomeTabs() {
   );
 }
 
+function AdminTabs() {
+  return (
+    <Tab.Navigator>
+      <Tab.Screen
+        name="AdminHome"
+        component={AdminScreen}
+        options={{
+          tabBarLabel: "Admin",
+          tabBarIcon: ({ color, size }) => (
+            <AntDesign name="dashboard" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="ConCan"
+        component={ConCanScreen}
+        options={{
+          tabBarLabel: "Configuração Cantina",
+          tabBarIcon: ({ color, size }) => (
+            <AntDesign name="tool" color={color} size={size} />
+          ),
+        }}
+      />
+    </Tab.Navigator>
+  );
+}
+
 function AppDrawer() {
   return (
     <Drawer.Navigator
@@ -75,6 +106,36 @@ function AppDrawer() {
         name="Sobre"
         component={SobreScreen}
         options={{ drawerLabel: 'Sobre' }}
+      />
+    </Drawer.Navigator>
+  );
+}
+
+function AdminDrawer() {
+  return (
+    <Drawer.Navigator>
+      <Drawer.Screen
+        name="AdminTabs"
+        component={AdminTabs}
+        options={{ drawerLabel: "Painel Admin" }}
+      />
+      
+      <Drawer.Screen
+        name="Gcan"
+        component={GcanScreen}
+        options={{ drawerLabel: "Gerenciar Cardápio" }}
+      />
+
+      <Drawer.Screen
+        name="GPer"
+        component={GPerScreen}
+        options={{ drawerLabel: "Gerenciar Pessoas" }}
+      />
+
+      <Drawer.Screen
+        name="GSal"
+        component={GSalScreen}
+        options={{ drawerLabel: "Gerenciar Saldo" }}
       />
     </Drawer.Navigator>
   );
@@ -106,6 +167,12 @@ function AppContent() {
          name="Admin"
          component={AdminScreen}
          options={{ headerShown: false }}
+        />
+
+       <Stack.Screen
+        name="AdminDrawer"
+        component={AdminDrawer}
+        options={{ headerShown: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>

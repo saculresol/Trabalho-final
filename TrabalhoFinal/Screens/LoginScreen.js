@@ -25,7 +25,7 @@ export default function LoginScreen({ navigation }) {
       Alert.alert('Bem-vindo', usuario.nome);
 
       if (usuario.tipo === 'admin') {
-        navigation.navigate('Admin');
+        navigation.navigate("AdminDrawer");
       } else {
         navigation.navigate('AppDrawer', {
           screen: 'HomeTabs',
