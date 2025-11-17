@@ -108,3 +108,14 @@ export default function App() {
     </NavigationContainer>
   );
 }
+<<<<<<< Updated upstream
+=======
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent /> 
+    </ThemeProvider>
+  );
+}
+>>>>>>> Stashed changes
