@@ -3,33 +3,52 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../Context/ThemeContext';
+import { supabase } from '../Services/supabase';
 
 export default function PerfilScreen({ navigation }) {
   const [nome, setNome] = useState('');
   const [turma, setTurma] = useState('');
   const [imagem, setImagem] = useState(null);
 
-  const { colors, theme, themeColors } = useTheme();
+  const { colors, theme } = useTheme();
 
-  const carregarDados = async () => {
+  const buscarDadosSupabase = async (userId) => {
     try {
-      const [[, nomeSalvo], [, turmaSalva], [, imagemSalva]] = await AsyncStorage.multiGet([
-        'nome',
-        'turma',
-        'imagem',
-      ]);
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('nome, turma, imagem')
+        .eq('user_id', userId)
+        .single();
+
+      if (!error && data) {
+        if (data.nome) setNome(data.nome);
+        if (data.turma) setTurma(data.turma);
+        if (data.imagem) setImagem(data.imagem);
+      }
+    } catch (err) {
+      console.log('Erro ao buscar do Supabase:', err);
+    }
+  };
+
+  const carregarDadosLocal = async () => {
+    try {
+      const [[, nomeSalvo], [, turmaSalva], [, imagemSalva], [, userId]] =
+        await AsyncStorage.multiGet(['nome', 'turma', 'imagem', 'user_id']);
+
       if (nomeSalvo) setNome(nomeSalvo);
       if (turmaSalva) setTurma(turmaSalva);
       if (imagemSalva) setImagem(imagemSalva);
+      if (userId) {
+        buscarDadosSupabase(userId);
+      }
+
     } catch (error) {
       console.error('Erro ao carregar os dados:', error);
     }
   };
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      carregarDados();
-    });
+    const unsubscribe = navigation.addListener('focus', carregarDadosLocal);
     return unsubscribe;
   }, [navigation]);
 
@@ -42,13 +61,18 @@ export default function PerfilScreen({ navigation }) {
             'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ71x_K2UcszdyBiq6m5BzXxaCwEgCSc74gsQ&s',
         }}
         style={styles.image}
-        accessibilityLabel="Foto de perfil"
         resizeMode="cover"
       />
+
       <Text style={[styles.text, { color: colors.text }]}>Nome: {nome}</Text>
       <Text style={[styles.text, { color: colors.text }]}>Turma: {turma}</Text>
+
       <Text style={styles.footer}>Versão 0.1.0 • Desenvolvido por Equipe Cantina Lhey</Text>
-      <StatusBar style={theme === 'dark' ? 'light' : 'dark'} backgroundColor={colors.background} />
+
+      <StatusBar
+        style={theme === 'dark' ? 'light' : 'dark'}
+        backgroundColor={colors.background}
+      />
     </View>
   );
 }
