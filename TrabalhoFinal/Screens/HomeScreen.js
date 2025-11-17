@@ -13,7 +13,7 @@ export default function HomeScreen() {
   const [quantia, setQuantia] = useState('');
   const [tickets, setTickets] = useState(1);
   const [cardapio, setCardapio] = useState([]);
-   const { colors, theme, themeColors } = useTheme();
+  const { colors, theme } = useTheme();
 
   const adicionarSaldo = () => {
     const valor = parseFloat(quantia);
@@ -24,6 +24,7 @@ export default function HomeScreen() {
     setSaldo(saldo + valor);
     setQuantia('');
   };
+
   function gerarSA(tamanho) {
     const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let resultado = '';
@@ -56,7 +57,7 @@ export default function HomeScreen() {
     if (tickets > 0) {
       setTickets(tickets - 1);
       salvarTransacao(item, 'ticket'); 
-      Alert.alert('Compra realizada com ticket!', 'seu cogigo de autorização é: ' + gerarSA(15));
+      Alert.alert('Compra realizada com ticket!', 'Seu código de autorização é: ' + gerarSA(15));
     } else {
       Alert.alert('Erro', 'Você não tem tickets suficientes.');
     }
@@ -73,6 +74,19 @@ export default function HomeScreen() {
   }
 
   useEffect(() => {
+    async function carregarDados() {
+      try {
+        const saldoSalvo = await AsyncStorage.getItem('saldo');
+        const ticketsSalvos = await AsyncStorage.getItem('tickets');
+
+        if (saldoSalvo !== null) setSaldo(parseFloat(saldoSalvo));
+        if (ticketsSalvos !== null) setTickets(parseInt(ticketsSalvos));
+      } catch (e) {
+        console.log("Erro ao carregar saldo:", e);
+      }
+    }
+
+    carregarDados();
     fetchMeals().then(setCardapio);
 
     const interval = setInterval(() => {
@@ -83,11 +97,19 @@ export default function HomeScreen() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    AsyncStorage.setItem('saldo', saldo.toString());
+  }, [saldo]);
+
+  useEffect(() => {
+    AsyncStorage.setItem('tickets', tickets.toString());
+  }, [tickets]);
+
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       <Image source={{ uri: item.imagem }} style={styles.cardImage} />
       <Text style={styles.cardTitle}>{item.nome}</Text>
-      <Text style={styles.cardDescription}>{item.descricao.slice(0,100)}…</Text>
+      <Text style={styles.cardDescription}>{item.descricao.slice(0, 100)}…</Text>
       <Text style={styles.cardPrice}>R$ {item.preco}</Text>
       <TouchableOpacity
         style={styles.cardButton}
@@ -125,11 +147,12 @@ export default function HomeScreen() {
       <TextInput
         style={[styles.input, { color: colors.text }]}
         placeholder="Adicionar saldo"
+        placeholderTextColor={theme === "dark" ? "#ccc" : "#666"}
         keyboardType="numeric"
         value={quantia}
         onChangeText={setQuantia}
       />
-      <Button  style={[styles.input, { color: colors.text }]} title="Adicionar Saldo" onPress={adicionarSaldo} />
+      <Button title="Adicionar Saldo" onPress={adicionarSaldo} />
 
       <Text style={[styles.subtitle, { color: colors.text }]}>Cardápio</Text>
       <FlatList
@@ -138,6 +161,7 @@ export default function HomeScreen() {
         renderItem={renderItem}
         contentContainerStyle={styles.cardapioContainer}
       />
+
       <StatusBar style={theme === 'dark' ? 'light' : 'dark'} backgroundColor={colors.background} />
     </View>
   );
@@ -147,7 +171,18 @@ const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: '#F8F9FA' },
   title: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
   subtitle: { fontSize: 18, fontWeight: 'bold', marginVertical: 20 },
-  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 10, marginBottom: 20 },
+
+  input: {
+    borderWidth: 1,
+    borderColor: '#A4BB49',
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 20,
+    fontSize: 16,
+    elevation: 2,
+  },
+
   cardapioContainer: { paddingBottom: 20 },
   card: {
     backgroundColor: '#fff',
@@ -166,6 +201,7 @@ const styles = StyleSheet.create({
   cardPrice: { fontSize: 16, fontWeight: 'bold', marginBottom: 10 },
   cardButton: { backgroundColor: '#A4BB49', paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
   cardButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+
   transacoesButton: {
     flexDirection: 'row',
     alignItems: 'center',
