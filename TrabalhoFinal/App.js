@@ -13,6 +13,7 @@ import PerfilScreen from './Screens/PerfilScreen';
 import ConfigScreen from './Screens/ConfigScreen';
 import SobreScreen from './Screens/SobreScreen';
 import TransacoesScreen from './Screens/TransacoesScreen';
+import AdminScreen from './Screens/AdminScreen'
 import { ThemeProvider, useTheme } from './Context/ThemeContext'; 
 
 const Stack = createNativeStackNavigator();
@@ -100,6 +101,11 @@ function AppContent() {
           name="Transações"
           component={TransacoesScreen}
           options={{ headerShown: false }}
+        />
+        <Stack.Screen
+         name="Admin"
+         component={AdminScreen}
+         options={{ headerShown: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>
