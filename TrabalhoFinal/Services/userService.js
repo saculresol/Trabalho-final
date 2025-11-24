@@ -3,7 +3,7 @@ import { supabase } from './supabase'
 export async function criarUsuario(nome, email, senha, tipo = 'comum') {
   const { data, error } = await supabase
     .from('usuarios')
-    .insert([{ nome, email, senha, tipo, saldo: 0, tickets: 1 }]) 
+    .insert([{ nome, email, senha, tipo, saldo: 0, tickets: 1 }])
     .select()
   
   if (error) throw error
@@ -44,21 +44,23 @@ export async function getUsuario(id) {
 }
 
 export async function updateUserBalance(id, novoSaldo) {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('usuarios')
     .update({ saldo: novoSaldo })
     .eq('id', id)
+    .select()
 
   if (error) throw error
-  return true
+  return data[0]
 }
 
 export async function updateUserTickets(id, novosTickets) {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('usuarios')
     .update({ tickets: novosTickets })
     .eq('id', id)
+    .select()
 
   if (error) throw error
-  return true
+  return data[0]
 }

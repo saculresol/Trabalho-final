@@ -15,13 +15,34 @@ export default function HomeScreen() {
   const [cardapio, setCardapio] = useState([]);
   const { colors, theme } = useTheme();
 
+  async function salvarSaldoUsuario(novoSaldo) {
+    const usuarioId = "usuario_comum";
+    try {
+      const raw = await AsyncStorage.getItem("saldosUsuarios");
+      const lista = raw ? JSON.parse(raw) : [];
+      const index = lista.findIndex(u => u.id === usuarioId);
+
+      if (index >= 0) {
+        lista[index].saldo = novoSaldo;
+      } else {
+        lista.push({ id: usuarioId, saldo: novoSaldo });
+      }
+
+      await AsyncStorage.setItem("saldosUsuarios", JSON.stringify(lista));
+    } catch (e) {
+      console.log("Erro ao salvar saldo do usuário:", e);
+    }
+  }
+
   const adicionarSaldo = () => {
     const valor = parseFloat(quantia);
     if (isNaN(valor) || valor <= 0) {
       Alert.alert('Erro', 'Por favor, insira um valor válido.');
       return;
     }
-    setSaldo(saldo + valor);
+    const novoSaldo = saldo + valor;
+    setSaldo(novoSaldo);
+    salvarSaldoUsuario(novoSaldo);
     setQuantia('');
   };
 
@@ -34,15 +55,14 @@ export default function HomeScreen() {
     }
     return resultado;
   }
-  
+
   async function salvarTransacao(item, tipo) {
     const novaTransacao = {
       nome: item.nome,
       preco: item.preco,
-      tipo: tipo, 
+      tipo: tipo,
       data: new Date().toLocaleString(),
     };
-
     try {
       const raw = await AsyncStorage.getItem('transacoes');
       const arr = raw ? JSON.parse(raw) : [];
@@ -56,8 +76,8 @@ export default function HomeScreen() {
   function ComprandoTicket(item) {
     if (tickets > 0) {
       setTickets(tickets - 1);
-      salvarTransacao(item, 'ticket'); 
-      Alert.alert('Compra realizada com ticket!', 'Seu código de autorização é: ' + gerarSA(15));
+      salvarTransacao(item, 'ticket');
+      Alert.alert('Compra realizada com ticket!', 'Código de autorização: ' + gerarSA(15));
     } else {
       Alert.alert('Erro', 'Você não tem tickets suficientes.');
     }
@@ -65,8 +85,10 @@ export default function HomeScreen() {
 
   function ComprandoSaldo(item) {
     if (saldo >= item.preco) {
-      setSaldo(saldo - item.preco);
-      salvarTransacao(item, 'saldo'); 
+      const novoSaldo = saldo - item.preco;
+      setSaldo(novoSaldo);
+      salvarSaldoUsuario(novoSaldo);
+      salvarTransacao(item, 'saldo');
       Alert.alert('Compra realizada com saldo!');
     } else {
       Alert.alert('Erro', 'Saldo insuficiente.');
@@ -75,19 +97,35 @@ export default function HomeScreen() {
 
   useEffect(() => {
     async function carregarDados() {
-      try {
-        const saldoSalvo = await AsyncStorage.getItem('saldo');
-        const ticketsSalvos = await AsyncStorage.getItem('tickets');
+      const usuarioId = "usuario_comum";
 
-        if (saldoSalvo !== null) setSaldo(parseFloat(saldoSalvo));
+      try {
+        const rawLista = await AsyncStorage.getItem("saldosUsuarios");
+        if (rawLista) {
+          const lista = JSON.parse(rawLista);
+          const usuario = lista.find(u => u.id === usuarioId);
+          if (usuario) setSaldo(usuario.saldo);
+        }
+
+        const ticketsSalvos = await AsyncStorage.getItem('tickets');
         if (ticketsSalvos !== null) setTickets(parseInt(ticketsSalvos));
       } catch (e) {
-        console.log("Erro ao carregar saldo:", e);
+        console.log("Erro ao carregar dados:", e);
+      }
+
+      try {
+        const dadosCardapio = await fetchMeals();
+        if (Array.isArray(dadosCardapio)) {
+          setCardapio(dadosCardapio);
+        } else {
+          console.warn("fetchMeals não retornou array:", dadosCardapio);
+        }
+      } catch (e) {
+        console.error("Erro ao carregar cardápio:", e);
       }
     }
 
     carregarDados();
-    fetchMeals().then(setCardapio);
 
     const interval = setInterval(() => {
       setTickets(prev => prev + 1);
@@ -98,22 +136,19 @@ export default function HomeScreen() {
   }, []);
 
   useEffect(() => {
-    AsyncStorage.setItem('saldo', saldo.toString());
-  }, [saldo]);
-
-  useEffect(() => {
     AsyncStorage.setItem('tickets', tickets.toString());
   }, [tickets]);
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
-      <Image source={{ uri: item.imagem }} style={styles.cardImage} />
+      {item.imagem && <Image source={{ uri: item.imagem }} style={styles.cardImage} />}
       <Text style={styles.cardTitle}>{item.nome}</Text>
-      <Text style={styles.cardDescription}>{item.descricao.slice(0, 100)}…</Text>
+      <Text style={styles.cardDescription}>{item.descricao?.slice(0, 100) ?? ''}…</Text>
       <Text style={styles.cardPrice}>R$ {item.preco}</Text>
+
       <TouchableOpacity
         style={styles.cardButton}
-        onPress={() => 
+        onPress={() =>
           Alert.alert(
             'Usar saldo ou ticket',
             'Escolha uma forma de pagamento:',
@@ -132,7 +167,6 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-     
       <TouchableOpacity
         style={styles.transacoesButton}
         onPress={() => navigation.navigate('Transações')}
@@ -155,12 +189,17 @@ export default function HomeScreen() {
       <Button title="Adicionar Saldo" onPress={adicionarSaldo} />
 
       <Text style={[styles.subtitle, { color: colors.text }]}>Cardápio</Text>
-      <FlatList
-        data={cardapio}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderItem}
-        contentContainerStyle={styles.cardapioContainer}
-      />
+
+      {cardapio.length === 0 ? (
+        <Text style={{ color: colors.text }}>Carregando cardápio...</Text>
+      ) : (
+        <FlatList
+          data={cardapio}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderItem}
+          contentContainerStyle={styles.cardapioContainer}
+        />
+      )}
 
       <StatusBar style={theme === 'dark' ? 'light' : 'dark'} backgroundColor={colors.background} />
     </View>
@@ -168,10 +207,9 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#F8F9FA' },
+  container: { flex: 1, padding: 20 },
   title: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
   subtitle: { fontSize: 18, fontWeight: 'bold', marginVertical: 20 },
-
   input: {
     borderWidth: 1,
     borderColor: '#A4BB49',
@@ -182,7 +220,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     elevation: 2,
   },
-
   cardapioContainer: { paddingBottom: 20 },
   card: {
     backgroundColor: '#fff',
@@ -201,7 +238,6 @@ const styles = StyleSheet.create({
   cardPrice: { fontSize: 16, fontWeight: 'bold', marginBottom: 10 },
   cardButton: { backgroundColor: '#A4BB49', paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
   cardButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-
   transacoesButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -214,9 +250,5 @@ const styles = StyleSheet.create({
     right: 20,
     zIndex: 10,
   },
-  transacoesButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
+  transacoesButtonText: { color: '#fff', fontSize: 14, fontWeight: 'bold' },
 });

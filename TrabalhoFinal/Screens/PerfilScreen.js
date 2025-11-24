@@ -12,43 +12,34 @@ export default function PerfilScreen({ navigation }) {
 
   const { colors, theme } = useTheme();
 
-  const buscarDadosSupabase = async (userId) => {
+  const carregarDadosSupabase = async () => {
     try {
+      const userId = await AsyncStorage.getItem('user_id');
+      if (!userId) return;
+
       const { data, error } = await supabase
         .from('usuarios')
         .select('nome, turma, imagem')
-        .eq('user_id', userId)
+        .eq('id', Number(userId))  // <- converter para número
         .single();
 
-      if (!error && data) {
-        if (data.nome) setNome(data.nome);
-        if (data.turma) setTurma(data.turma);
-        if (data.imagem) setImagem(data.imagem);
+      if (error) {
+        console.error('Erro do Supabase:', error);
+        return;
+      }
+
+      if (data) {
+        setNome(data.nome || '');
+        setTurma(data.turma || '');
+        setImagem(data.imagem || null);
       }
     } catch (err) {
-      console.log('Erro ao buscar do Supabase:', err);
-    }
-  };
-
-  const carregarDadosLocal = async () => {
-    try {
-      const [[, nomeSalvo], [, turmaSalva], [, imagemSalva], [, userId]] =
-        await AsyncStorage.multiGet(['nome', 'turma', 'imagem', 'user_id']);
-
-      if (nomeSalvo) setNome(nomeSalvo);
-      if (turmaSalva) setTurma(turmaSalva);
-      if (imagemSalva) setImagem(imagemSalva);
-      if (userId) {
-        buscarDadosSupabase(userId);
-      }
-
-    } catch (error) {
-      console.error('Erro ao carregar os dados:', error);
+      console.error('Erro ao buscar dados do Supabase:', err);
     }
   };
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', carregarDadosLocal);
+    const unsubscribe = navigation.addListener('focus', carregarDadosSupabase);
     return unsubscribe;
   }, [navigation]);
 
@@ -63,41 +54,17 @@ export default function PerfilScreen({ navigation }) {
         style={styles.image}
         resizeMode="cover"
       />
-
       <Text style={[styles.text, { color: colors.text }]}>Nome: {nome}</Text>
       <Text style={[styles.text, { color: colors.text }]}>Turma: {turma}</Text>
-
       <Text style={styles.footer}>Versão 0.1.0 • Desenvolvido por Equipe Cantina Lhey</Text>
-
-      <StatusBar
-        style={theme === 'dark' ? 'light' : 'dark'}
-        backgroundColor={colors.background}
-      />
+      <StatusBar style={theme === 'dark' ? 'light' : 'dark'} backgroundColor={colors.background} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-  },
-  image: {
-    width: 100,
-    height: 100,
-    borderRadius: 100,
-    marginBottom: 20,
-  },
-  text: {
-    fontSize: 16,
-    marginBottom: 8,
-  },
-  footer: {
-    fontSize: 14,
-    color: '#9CA3AF',
-    marginTop: 30,
-    textAlign: 'center',
-  },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20 },
+  image: { width: 100, height: 100, borderRadius: 100, marginBottom: 20 },
+  text: { fontSize: 16, marginBottom: 8 },
+  footer: { fontSize: 14, color: '#9CA3AF', marginTop: 30, textAlign: 'center' },
 });

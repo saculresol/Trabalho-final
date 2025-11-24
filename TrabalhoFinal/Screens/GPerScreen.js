@@ -1,42 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import {View,Text,FlatList,TouchableOpacity,Modal,TextInput,StyleSheet,Alert,} from 'react-native';
+import {
+  View, Text, FlatList, TouchableOpacity, Modal, TextInput, StyleSheet, Alert
+} from 'react-native';
 import { useTheme } from '../Context/ThemeContext';
-import { supabase } from '../Services/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from '../Services/supabase';
 
 export default function GPerScreen() {
   const { colors } = useTheme();
 
   const [usuarios, setUsuarios] = useState([]);
   const [carregando, setCarregando] = useState(true);
-
   const [modalVisible, setModalVisible] = useState(false);
   const [usuarioSelecionado, setUsuarioSelecionado] = useState(null);
   const [novoNome, setNovoNome] = useState('');
   const [novaTurma, setNovaTurma] = useState('');
 
+  // ----------------------------
+  // Carregar usuários do Supabase
+  // ----------------------------
   const carregarUsuarios = async () => {
     setCarregando(true);
-
     try {
       const { data, error } = await supabase
         .from('usuarios')
         .select('*')
         .order('nome', { ascending: true });
 
-      if (error) {
-        console.error('Erro ao carregar usuários:', error);
-        Alert.alert('Erro', 'Não foi possível carregar os usuários.');
-        setUsuarios([]);
-        setCarregando(false);
-        return;
-      }
+      if (error) throw error;
 
-      const somenteNormais = (data || []).filter(u => u.tipo !== 'admin');
+      const somenteNormais = data.filter(u => u.tipo !== 'admin');
       setUsuarios(somenteNormais);
+
+      // Salva no AsyncStorage para o PerfilScreen
+      await AsyncStorage.setItem('usuarios', JSON.stringify(somenteNormais));
+
     } catch (err) {
-      console.error('Erro inesperado ao carregar usuários:', err);
-      Alert.alert('Erro', 'Ocorreu um erro inesperado.');
+      console.error('Erro ao carregar usuários:', err);
+      Alert.alert('Erro', 'Não foi possível carregar os usuários.');
       setUsuarios([]);
     } finally {
       setCarregando(false);
@@ -47,6 +48,9 @@ export default function GPerScreen() {
     carregarUsuarios();
   }, []);
 
+  // ----------------------------
+  // Abrir modal de edição
+  // ----------------------------
   const abrirEdicao = (usuario) => {
     setUsuarioSelecionado(usuario);
     setNovoNome(usuario.nome || '');
@@ -54,6 +58,9 @@ export default function GPerScreen() {
     setModalVisible(true);
   };
 
+  // ----------------------------
+  // Salvar edição local
+  // ----------------------------
   const salvarEdicao = async () => {
     if (!usuarioSelecionado) return;
 
@@ -63,77 +70,36 @@ export default function GPerScreen() {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('usuarios')
-        .update({ nome: novoNome.trim(), turma: novaTurma.trim() })
-        .eq('id', usuarioSelecionado.id)
-        .select()
-        .single();
+      const atualizado = { ...usuarioSelecionado, nome: novoNome.trim(), turma: novaTurma.trim() };
 
-      if (error) {
-        console.error('Erro ao atualizar usuário:', error);
-        Alert.alert('Erro', 'Não foi possível salvar as alterações no banco.');
-        return;
+      // Atualiza lista na tela
+      const listaAtualizada = usuarios.map(u => u.id === atualizado.id ? atualizado : u);
+      setUsuarios(listaAtualizada);
+
+      // Atualiza AsyncStorage
+      await AsyncStorage.setItem('usuarios', JSON.stringify(listaAtualizada));
+
+      // Atualiza dados do usuário logado
+      const userIdLocal = await AsyncStorage.getItem('user_id');
+      if (userIdLocal && userIdLocal === atualizado.id.toString()) {
+        await AsyncStorage.multiSet([
+          ['nome', atualizado.nome],
+          ['turma', atualizado.turma],
+        ]);
       }
 
-      setUsuarios(prev =>
-        prev.map(u => (u.id === data.id ? { ...u, ...data } : u))
-      );
-
-      try {
-        const userIdLocal = await AsyncStorage.getItem('user_id'); 
-        const usuarioUserId = data.user_id || data.userId || null;
-
-        if (userIdLocal && usuarioUserId && userIdLocal === usuarioUserId) {
-          await AsyncStorage.multiSet([
-            ['nome', data.nome || ''],
-            ['turma', data.turma || ''],
-          ]);
-        }
-      } catch (asErr) {
-        console.warn('Falha ao atualizar AsyncStorage (não bloqueante):', asErr);
-      }
-
-      Alert.alert('Sucesso', 'Usuário atualizado com sucesso.');
+      Alert.alert('Sucesso', 'Usuário atualizado.');
       setModalVisible(false);
       setUsuarioSelecionado(null);
     } catch (err) {
       console.error('Erro ao salvar edição:', err);
-      Alert.alert('Erro', 'Ocorreu um erro ao salvar as alterações.');
-    }
-  };
-
-  const resetarSenha = async () => {
-    if (!usuarioSelecionado) return;
-    try {
-      const userId = usuarioSelecionado.user_id || usuarioSelecionado.userId;
-      if (!userId) {
-        Alert.alert('Erro', 'Não foi possível identificar o usuário no auth.');
-        return;
-      }
-
-      const { error } = await supabase.auth.admin.updateUserById(userId, {
-        password: '123456',
-      });
-
-      if (error) {
-        console.error('Erro ao resetar senha:', error);
-        Alert.alert('Erro', 'Não foi possível resetar a senha.');
-        return;
-      }
-
-      Alert.alert('Sucesso', 'Senha resetada para: 123456');
-    } catch (err) {
-      console.error('Erro inesperado ao resetar senha:', err);
-      Alert.alert('Erro', 'Ocorreu um erro inesperado ao resetar a senha.');
+      Alert.alert('Erro', 'Não foi possível salvar alterações.');
     }
   };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.titulo, { color: colors.text }]}>
-        Gerenciamento de Usuários
-      </Text>
+      <Text style={[styles.titulo, { color: colors.text }]}>Gerenciamento de Usuários</Text>
 
       {carregando ? (
         <Text style={{ color: colors.text }}>Carregando...</Text>
@@ -149,17 +115,10 @@ export default function GPerScreen() {
             >
               <View style={styles.cardLinha}>
                 <View>
-                  <Text style={[styles.nome, { color: colors.text }]}>
-                    {item.nome}
-                  </Text>
-                  <Text style={{ color: colors.textSecundary }}>
-                    Turma: {item.turma}
-                  </Text>
+                  <Text style={[styles.nome, { color: colors.text }]}>{item.nome}</Text>
+                  <Text style={{ color: colors.textSecundary }}>Turma: {item.turma}</Text>
                 </View>
-
-                <Text style={[styles.btnEditarTexto, { color: colors.primary }]}>
-                  Editar
-                </Text>
+                <Text style={[styles.btnEditarTexto, { color: colors.primary }]}>Editar</Text>
               </View>
             </TouchableOpacity>
           )}
@@ -193,10 +152,6 @@ export default function GPerScreen() {
               <Text style={styles.btnSalvarText}>Salvar Alterações</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.btnResetar} onPress={resetarSenha}>
-              <Text style={styles.btnResetarText}>Resetar Senha</Text>
-            </TouchableOpacity>
-
             <TouchableOpacity onPress={() => setModalVisible(false)}>
               <Text style={styles.fechar}>Fechar</Text>
             </TouchableOpacity>
@@ -208,124 +163,18 @@ export default function GPerScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-
-  titulo: {
-    fontSize: 26,
-    fontWeight: '700',
-    marginBottom: 20,
-  },
-
-  card: {
-    padding: 18,
-    borderRadius: 16,
-    marginBottom: 14,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-
-  cardLinha: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-
-  nome: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-
-  btnEditarTexto: {
-    fontSize: 15,
-    fontWeight: '700',
-  },
-
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    padding: 25,
-  },
-
-  modalBox: {
-    width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 25,
-
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-  },
-
-  modalTitulo: {
-    fontSize: 22,
-    fontWeight: '800',
-    textAlign: 'center',
-    marginBottom: 20,
-    color: '#000',
-  },
-
-  label: {
-    fontSize: 15,
-    marginTop: 12,
-    marginBottom: 5,
-    fontWeight: '600',
-    color: '#000',
-  },
-
-  input: {
-    padding: 14,
-    borderRadius: 10,
-    fontSize: 16,
-
-    backgroundColor: '#F2F2F2',
-    color: '#000',
-
-    borderWidth: 1,
-    borderColor: '#C8C8C8',
-  },
-
-  btnSalvar: {
-    backgroundColor: '#1e88e5',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-
-  btnSalvarText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 17,
-  },
-
-  btnResetar: {
-    backgroundColor: '#d90429',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 12,
-  },
-
-  btnResetarText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 17,
-  },
-
-  fechar: {
-    marginTop: 18,
-    textAlign: 'center',
-    fontSize: 16,
-    color: '#444',
-    fontWeight: '500',
-  },
+  container: { flex: 1, paddingHorizontal: 20, paddingTop: 20 },
+  titulo: { fontSize: 26, fontWeight: '700', marginBottom: 20 },
+  card: { padding: 18, borderRadius: 16, marginBottom: 14, elevation: 3, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 8 },
+  cardLinha: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  nome: { fontSize: 18, fontWeight: '600' },
+  btnEditarTexto: { fontSize: 15, fontWeight: '700' },
+  modalContainer: { flex: 1, backgroundColor: '#FFFFFF', justifyContent: 'center', padding: 25 },
+  modalBox: { width: '100%', backgroundColor: '#FFFFFF', borderRadius: 18, padding: 25, elevation: 10, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 10 },
+  modalTitulo: { fontSize: 22, fontWeight: '800', textAlign: 'center', marginBottom: 20, color: '#000' },
+  label: { fontSize: 15, marginTop: 12, marginBottom: 5, fontWeight: '600', color: '#000' },
+  input: { padding: 14, borderRadius: 10, fontSize: 16, backgroundColor: '#F2F2F2', color: '#000', borderWidth: 1, borderColor: '#C8C8C8' },
+  btnSalvar: { backgroundColor: '#1e88e5', paddingVertical: 14, borderRadius: 12, alignItems: 'center', marginTop: 20 },
+  btnSalvarText: { color: '#fff', fontWeight: 'bold', fontSize: 17 },
+  fechar: { marginTop: 18, textAlign: 'center', fontSize: 16, color: '#444', fontWeight: '500' },
 });
