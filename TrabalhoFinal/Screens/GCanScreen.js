@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView } from "react-native";
 import { fetchMeals } from "../Services/mealService";
+import { useTheme } from "../Context/ThemeContext";
 
 export default function AdminGerenciarCardapioScreen() {
+  const { theme } = useTheme();
+
   const [itensAtivos, setItensAtivos] = useState([]);
   const [novoItem, setNovoItem] = useState("");
   const [novoPreco, setNovoPreco] = useState("");
-  const [itemsDesativados, setItensDesativados] = useState([]);
+  const [itensDesativados, setItensDesativados] = useState([]);
 
   useEffect(() => {
     async function carregar() {
-      const pratos = await fetchMeals(true); // Busca a lista COMPLETA da API
+      const pratos = await fetchMeals(true);
       setItensAtivos(pratos);
     }
     carregar();
@@ -43,60 +46,101 @@ export default function AdminGerenciarCardapioScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.titulo}>Gerenciar Cardápio</Text>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      
+      <Text style={[styles.titulo, { color: theme.text }]}>Gerenciar Cardápio</Text>
 
       {/* FORMULÁRIO */}
       <View style={styles.row}>
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            {
+              borderColor: theme.border,
+              color: theme.text,
+            },
+          ]}
           placeholder="Nome do novo item"
+          placeholderTextColor={theme.placeholder}
           value={novoItem}
           onChangeText={setNovoItem}
         />
+
         <TextInput
-          style={[styles.input, { width: 90 }]}
+          style={[
+            styles.input,
+            {
+              width: 90,
+              borderColor: theme.border,
+              color: theme.text,
+            },
+          ]}
           placeholder="Preço"
+          placeholderTextColor={theme.placeholder}
           keyboardType="numeric"
           value={novoPreco}
           onChangeText={setNovoPreco}
         />
-        <TouchableOpacity style={styles.btnAdd} onPress={adicionarItemManual}>
-          <Text style={styles.btnText}>Add</Text>
+
+        <TouchableOpacity
+          style={[
+            styles.btnAdd,
+            {
+              backgroundColor: theme.success,
+            },
+          ]}
+          onPress={adicionarItemManual}
+        >
+          <Text style={[styles.btnText, { color: theme.textButton || "#fff" }]}>Add</Text>
         </TouchableOpacity>
       </View>
 
-      {/* SCROLL ÚNICO */}
       <ScrollView showsVerticalScrollIndicator={false}>
 
-        {/* ATIVOS */}
-        <Text style={styles.subtitulo}>Itens Ativos</Text>
+        <Text style={[styles.subtitulo, { color: theme.text }]}>Itens Ativos</Text>
 
         {itensAtivos.map((item) => (
-          <View key={item.id} style={styles.card}>
+          <View
+            key={item.id}
+            style={[
+              styles.card,
+              {
+                backgroundColor: theme.card,
+                borderColor: theme.border,
+              },
+            ]}
+          >
             {item.imagem && <Image source={{ uri: item.imagem }} style={styles.img} />}
 
             <View style={{ flex: 1 }}>
-              <Text style={styles.nome}>{item.nome}</Text>
-              <Text style={styles.desc}>{item.descricao?.slice(0, 50)}...</Text>
-              <Text style={styles.preco}>R$ {item.preco}</Text>
+              <Text style={[styles.nome, { color: theme.text }]}>{item.nome}</Text>
+              <Text style={[styles.desc, { color: theme.text }]}>{item.descricao?.slice(0, 50)}...</Text>
+              <Text style={[styles.preco, { color: theme.text }]}>R$ {item.preco}</Text>
             </View>
 
             <TouchableOpacity onPress={() => desativarItem(item)}>
-              <Text style={styles.desativar}>Desativar</Text>
+              <Text style={[styles.desativar, { color: theme.danger }]}>Desativar</Text>
             </TouchableOpacity>
           </View>
         ))}
 
-        {/* DESATIVADOS */}
-        <Text style={styles.subtitulo}>Itens Desativados</Text>
+        <Text style={[styles.subtitulo, { color: theme.text }]}>Itens Desativados</Text>
 
-        {itemsDesativados.map((item) => (
-          <View key={item.id} style={styles.cardDesativado}>
-            <Text style={styles.nome}>{item.nome}</Text>
+        {itensDesativados.map((item) => (
+          <View
+            key={item.id}
+            style={[
+              styles.cardDesativado,
+              {
+                backgroundColor: theme.cardDesativado,
+                borderColor: theme.border,
+              },
+            ]}
+          >
+            <Text style={[styles.nome, { color: theme.text }]}>{item.nome}</Text>
 
             <TouchableOpacity onPress={() => ativarItem(item)}>
-              <Text style={styles.ativar}>Ativar</Text>
+              <Text style={[styles.ativar, { color: theme.success }]}>Ativar</Text>
             </TouchableOpacity>
           </View>
         ))}
@@ -107,12 +151,22 @@ export default function AdminGerenciarCardapioScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
-  titulo: { fontSize: 24, fontWeight: "bold", marginBottom: 20 },
+  container: {
+    flex: 1,
+    padding: 16,
+  },
 
-  subtitulo: { fontSize: 18, marginVertical: 10, fontWeight: "600" },
+  titulo: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 16,
+  },
 
-  row: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 15 },
+  row: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 20,
+  },
 
   input: {
     flex: 1,
@@ -122,39 +176,69 @@ const styles = StyleSheet.create({
   },
 
   btnAdd: {
-    backgroundColor: "green",
-    paddingVertical: 12,
-    paddingHorizontal: 15,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
     borderRadius: 8,
+    justifyContent: "center",
   },
 
-  btnText: { color: "#fff", fontWeight: "bold" },
+  btnText: {
+    fontWeight: "bold",
+  },
+
+  subtitulo: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 10,
+    marginTop: 10,
+  },
 
   card: {
     flexDirection: "row",
-    backgroundColor: "#e8ffe8",
-    padding: 10,
-    marginVertical: 5,
+    padding: 12,
     borderRadius: 10,
+    marginBottom: 12,
     alignItems: "center",
+    gap: 10,
+    borderWidth: 1,
   },
-
-  img: { width: 70, height: 70, borderRadius: 8, marginRight: 10 },
-
-  nome: { fontSize: 16, fontWeight: "bold" },
-  desc: { fontSize: 12, opacity: 0.7 },
-  preco: { marginTop: 5, fontWeight: "bold" },
-
-  desativar: { color: "red", fontWeight: "bold" },
 
   cardDesativado: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 10,
-    backgroundColor: "#ffe8e8",
-    marginVertical: 5,
+    padding: 12,
     borderRadius: 10,
+    marginBottom: 12,
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
   },
 
-  ativar: { color: "green", fontWeight: "bold" },
+  img: {
+    width: 70,
+    height: 70,
+    borderRadius: 8,
+  },
+
+  nome: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+
+  desc: {
+    fontSize: 14,
+    marginVertical: 3,
+  },
+
+  preco: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+
+  desativar: {
+    fontWeight: "bold",
+  },
+
+  ativar: {
+    fontWeight: "bold",
+  },
 });
