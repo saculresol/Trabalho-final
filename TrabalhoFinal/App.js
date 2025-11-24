@@ -1,7 +1,7 @@
 import React from 'react';
 import 'react-native-gesture-handler';
 import 'react-native-reanimated';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, ThemeProvider } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator } from '@react-navigation/drawer';
@@ -28,7 +28,7 @@ function HomeTabs() {
         tabBarInactiveTintColor: '#999',
       }}
     >
-      
+
       <Tab.Screen
         name="Home"
         component={HomeScreen}
@@ -85,37 +85,29 @@ function AppDrawer() {
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login">
-        <Stack.Screen
-          name="Login"
-          component={LoginScreen}
-          options={{ headerShown: false }}
-        />
-
-        <Stack.Screen
-          name="AppDrawer"
-          component={AppDrawer}
-          options={{ headerShown: false }}
-        />
-
-        <Stack.Screen
-          name="Transações"
-          component={TransacoesScreen}
-          options={{ headerShown: false }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
-}
-<<<<<<< Updated upstream
-=======
-
-export default function App() {
-  return (
     <ThemeProvider>
-      <AppContent /> 
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Login">
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ headerShown: false }}
+          />
+
+          <Stack.Screen
+            name="AppDrawer"
+            component={AppDrawer}
+            options={{ headerShown: false }}
+          />
+
+          <Stack.Screen
+            name="Transações"
+            component={TransacoesScreen}
+            options={{ headerShown: false }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
     </ThemeProvider>
   );
 }
->>>>>>> Stashed changes
+
