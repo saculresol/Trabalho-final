@@ -1,11 +1,78 @@
+import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Image } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../Context/ThemeContext';
+import { supabase } from '../Services/supabase';
 
-export default function TransacoesScreen() {  
+export default function PerfilScreen({ navigation }) {
+  const [nome, setNome] = useState('');
+  const [turma, setTurma] = useState('');
+  const [imagem, setImagem] = useState(null);
+
+  const { colors, theme } = useTheme();
+
+  const buscarDadosSupabase = async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('nome, turma, imagem')
+        .eq('user_id', userId)
+        .single();
+
+      if (!error && data) {
+        if (data.nome) setNome(data.nome);
+        if (data.turma) setTurma(data.turma);
+        if (data.imagem) setImagem(data.imagem);
+      }
+    } catch (err) {
+      console.log('Erro ao buscar do Supabase:', err);
+    }
+  };
+
+  const carregarDadosLocal = async () => {
+    try {
+      const [[, nomeSalvo], [, turmaSalva], [, imagemSalva], [, userId]] =
+        await AsyncStorage.multiGet(['nome', 'turma', 'imagem', 'user_id']);
+
+      if (nomeSalvo) setNome(nomeSalvo);
+      if (turmaSalva) setTurma(turmaSalva);
+      if (imagemSalva) setImagem(imagemSalva);
+      if (userId) {
+        buscarDadosSupabase(userId);
+      }
+
+    } catch (error) {
+      console.error('Erro ao carregar os dados:', error);
+    }
+  };
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', carregarDadosLocal);
+    return unsubscribe;
+  }, [navigation]);
+
   return (
-    <View style={styles.container}>
-      <Text>Perfil</Text>
-      <StatusBar style="auto" />
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Image
+        source={{
+          uri:
+            imagem ||
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ71x_K2UcszdyBiq6m5BzXxaCwEgCSc74gsQ&s',
+        }}
+        style={styles.image}
+        resizeMode="cover"
+      />
+
+      <Text style={[styles.text, { color: colors.text }]}>Nome: {nome}</Text>
+      <Text style={[styles.text, { color: colors.text }]}>Turma: {turma}</Text>
+
+      <Text style={styles.footer}>Versão 0.1.0 • Desenvolvido por Equipe Cantina Lhey</Text>
+
+      <StatusBar
+        style={theme === 'dark' ? 'light' : 'dark'}
+        backgroundColor={colors.background}
+      />
     </View>
   );
 }
@@ -13,8 +80,24 @@ export default function TransacoesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  image: {
+    width: 100,
+    height: 100,
+    borderRadius: 100,
+    marginBottom: 20,
+  },
+  text: {
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  footer: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    marginTop: 30,
+    textAlign: 'center',
   },
 });

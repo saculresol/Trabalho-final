@@ -1,47 +1,222 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Button, TextInput, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Button, TextInput, Alert, FlatList, TouchableOpacity, Image } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { fetchMeals } from '../Services/mealService';
+import { AntDesign } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../Context/ThemeContext';
 
 export default function HomeScreen() {
+  const navigation = useNavigation();
   const [saldo, setSaldo] = useState(0);
   const [quantia, setQuantia] = useState('');
+  const [tickets, setTickets] = useState(1);
+  const [cardapio, setCardapio] = useState([]);
+  const { colors, theme } = useTheme();
 
   const adicionarSaldo = () => {
-    const valor = parseFloat(quantia); // Converte a entrada para número
+    const valor = parseFloat(quantia);
     if (isNaN(valor) || valor <= 0) {
       Alert.alert('Erro', 'Por favor, insira um valor válido.');
       return;
     }
-    setSaldo(saldo + valor); // Adiciona o valor ao saldo atual
-    setQuantia(''); // Limpa o campo de entrada
+    setSaldo(saldo + valor);
+    setQuantia('');
   };
 
+  function gerarSA(tamanho) {
+    const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let resultado = '';
+    for (let i = 0; i < tamanho; i++) {
+      const indice = Math.floor(Math.random() * caracteres.length);
+      resultado += caracteres[indice];
+    }
+    return resultado;
+  }
+  
+  async function salvarTransacao(item, tipo) {
+    const novaTransacao = {
+      nome: item.nome,
+      preco: item.preco,
+      tipo: tipo, 
+      data: new Date().toLocaleString(),
+    };
+
+    try {
+      const raw = await AsyncStorage.getItem('transacoes');
+      const arr = raw ? JSON.parse(raw) : [];
+      arr.push(novaTransacao);
+      await AsyncStorage.setItem('transacoes', JSON.stringify(arr));
+    } catch (error) {
+      console.error('Erro ao salvar transação:', error);
+    }
+  }
+
+  function ComprandoTicket(item) {
+    if (tickets > 0) {
+      setTickets(tickets - 1);
+      salvarTransacao(item, 'ticket'); 
+      Alert.alert('Compra realizada com ticket!', 'Seu código de autorização é: ' + gerarSA(15));
+    } else {
+      Alert.alert('Erro', 'Você não tem tickets suficientes.');
+    }
+  }
+
+  function ComprandoSaldo(item) {
+    if (saldo >= item.preco) {
+      setSaldo(saldo - item.preco);
+      salvarTransacao(item, 'saldo'); 
+      Alert.alert('Compra realizada com saldo!');
+    } else {
+      Alert.alert('Erro', 'Saldo insuficiente.');
+    }
+  }
+
+  useEffect(() => {
+    async function carregarDados() {
+      try {
+        const saldoSalvo = await AsyncStorage.getItem('saldo');
+        const ticketsSalvos = await AsyncStorage.getItem('tickets');
+
+        if (saldoSalvo !== null) setSaldo(parseFloat(saldoSalvo));
+        if (ticketsSalvos !== null) setTickets(parseInt(ticketsSalvos));
+      } catch (e) {
+        console.log("Erro ao carregar saldo:", e);
+      }
+    }
+
+    carregarDados();
+    fetchMeals().then(setCardapio);
+
+    const interval = setInterval(() => {
+      setTickets(prev => prev + 1);
+      Alert.alert('Novo Ticket', 'Um novo ticket foi adicionado!');
+    }, 86400000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    AsyncStorage.setItem('saldo', saldo.toString());
+  }, [saldo]);
+
+  useEffect(() => {
+    AsyncStorage.setItem('tickets', tickets.toString());
+  }, [tickets]);
+
+  const renderItem = ({ item }) => (
+    <View style={styles.card}>
+      <Image source={{ uri: item.imagem }} style={styles.cardImage} />
+      <Text style={styles.cardTitle}>{item.nome}</Text>
+      <Text style={styles.cardDescription}>{item.descricao.slice(0, 100)}…</Text>
+      <Text style={styles.cardPrice}>R$ {item.preco}</Text>
+      <TouchableOpacity
+        style={styles.cardButton}
+        onPress={() => 
+          Alert.alert(
+            'Usar saldo ou ticket',
+            'Escolha uma forma de pagamento:',
+            [
+              { text: 'Ticket', onPress: () => ComprandoTicket(item) },
+              { text: 'Saldo', onPress: () => ComprandoSaldo(item) },
+              { text: 'Cancelar', style: 'cancel' },
+            ]
+          )
+        }
+      >
+        <Text style={styles.cardButtonText}>Comprar</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Bem-vindo à Home!</Text>
-      <Text style={styles.saldoText}>Seu saldo é: R${saldo.toFixed(2)}</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+     
+      <TouchableOpacity
+        style={styles.transacoesButton}
+        onPress={() => navigation.navigate('Transações')}
+      >
+        <AntDesign name="profile" size={20} color="#fff" style={{ marginRight: 5 }} />
+        <Text style={styles.transacoesButtonText}>Histórico de Transações</Text>
+      </TouchableOpacity>
+
+      <Text style={[styles.title, { color: colors.text }]}>Saldo: R$ {saldo.toFixed(2)}</Text>
+      <Text style={[styles.title, { color: colors.text }]}>Tickets: {tickets}</Text>
+
       <TextInput
-        style={styles.input}
-        placeholder="Digite a quantia"
+        style={[styles.input, { color: colors.text }]}
+        placeholder="Adicionar saldo"
+        placeholderTextColor={theme === "dark" ? "#ccc" : "#666"}
         keyboardType="numeric"
         value={quantia}
         onChangeText={setQuantia}
       />
       <Button title="Adicionar Saldo" onPress={adicionarSaldo} />
+
+      <Text style={[styles.subtitle, { color: colors.text }]}>Cardápio</Text>
+      <FlatList
+        data={cardapio}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={renderItem}
+        contentContainerStyle={styles.cardapioContainer}
+      />
+
+      <StatusBar style={theme === 'dark' ? 'light' : 'dark'} backgroundColor={colors.background} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
-  saldoText: { fontSize: 18, marginBottom: 20 },
+  container: { flex: 1, padding: 20, backgroundColor: '#F8F9FA' },
+  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
+  subtitle: { fontSize: 18, fontWeight: 'bold', marginVertical: 20 },
+
   input: {
-    height: 40,
-    borderColor: 'gray',
     borderWidth: 1,
-    width: '100%',
-    marginBottom: 10,
-    paddingHorizontal: 10,
-    borderRadius: 5,
+    borderColor: '#A4BB49',
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 20,
+    fontSize: 16,
+    elevation: 2,
+  },
+
+  cardapioContainer: { paddingBottom: 20 },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 15,
+    marginBottom: 15,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  cardImage: { width: '100%', height: 150, borderRadius: 8, marginBottom: 10 },
+  cardTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 5 },
+  cardDescription: { fontSize: 14, color: '#6B7280', marginBottom: 5 },
+  cardPrice: { fontSize: 16, fontWeight: 'bold', marginBottom: 10 },
+  cardButton: { backgroundColor: '#A4BB49', paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
+  cardButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+
+  transacoesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#A4BB49',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    zIndex: 10,
+  },
+  transacoesButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 });
