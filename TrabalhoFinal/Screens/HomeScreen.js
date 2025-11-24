@@ -179,7 +179,7 @@ onPress={() => navigation.navigate('Transações')}
       style={styles.transacoesButton}
       onPress={() => navigation.navigate('Carrinho')}
     >
-      <AntDesign name="shoppingcart" size={20} color="#fff" style={{ marginRight: 5 }} />
+      <AntDesign name="shopping" size={20} color="#fff" style={{ marginRight: 5 }} />
       <Text style={styles.transacoesButtonText}>Carrinho</Text>
     </TouchableOpacity>
   </View>
