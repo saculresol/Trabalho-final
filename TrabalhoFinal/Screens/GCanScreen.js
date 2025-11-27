@@ -4,7 +4,7 @@ import { fetchMeals } from "../Services/mealService";
 import { useTheme } from "../Context/ThemeContext";
 
 export default function AdminGerenciarCardapioScreen() {
-  const { theme } = useTheme();
+  const { theme, colors } = useTheme();
 
   const [itensAtivos, setItensAtivos] = useState([]);
   const [novoItem, setNovoItem] = useState("");
@@ -46,9 +46,9 @@ export default function AdminGerenciarCardapioScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      
-      <Text style={[styles.titulo, { color: theme.text }]}>Gerenciar Cardápio</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+
+      <Text style={[styles.titulo, { color: colors.text }]}>Gerenciar Cardápio</Text>
 
       {/* FORMULÁRIO */}
       <View style={styles.row}>
@@ -56,12 +56,12 @@ export default function AdminGerenciarCardapioScreen() {
           style={[
             styles.input,
             {
-              borderColor: theme.border,
-              color: theme.text,
+              borderColor: colors.secondary,
+              color: colors.text,
             },
           ]}
           placeholder="Nome do novo item"
-          placeholderTextColor={theme.placeholder}
+          placeholderTextColor={colors.placeholder}
           value={novoItem}
           onChangeText={setNovoItem}
         />
@@ -71,12 +71,12 @@ export default function AdminGerenciarCardapioScreen() {
             styles.input,
             {
               width: 90,
-              borderColor: theme.border,
-              color: theme.text,
+              borderColor: colors.secondary,
+              color: colors.text,
             },
           ]}
           placeholder="Preço"
-          placeholderTextColor={theme.placeholder}
+          placeholderTextColor={colors.placeholder}
           keyboardType="numeric"
           value={novoPreco}
           onChangeText={setNovoPreco}
@@ -86,18 +86,18 @@ export default function AdminGerenciarCardapioScreen() {
           style={[
             styles.btnAdd,
             {
-              backgroundColor: theme.success,
+              backgroundColor: colors.primary,
             },
           ]}
           onPress={adicionarItemManual}
         >
-          <Text style={[styles.btnText, { color: theme.textButton || "#fff" }]}>Add</Text>
+          <Text style={[styles.btnText, { color: "#fff" }]}>Add</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
 
-        <Text style={[styles.subtitulo, { color: theme.text }]}>Itens Ativos</Text>
+        <Text style={[styles.subtitulo, { color: colors.text }]}>Itens Ativos</Text>
 
         {itensAtivos.map((item) => (
           <View
@@ -105,26 +105,26 @@ export default function AdminGerenciarCardapioScreen() {
             style={[
               styles.card,
               {
-                backgroundColor: theme.card,
-                borderColor: theme.border,
+                backgroundColor: colors.card,
+                borderColor: colors.secondary,
               },
             ]}
           >
             {item.imagem && <Image source={{ uri: item.imagem }} style={styles.img} />}
 
             <View style={{ flex: 1 }}>
-              <Text style={[styles.nome, { color: theme.text }]}>{item.nome}</Text>
-              <Text style={[styles.desc, { color: theme.text }]}>{item.descricao?.slice(0, 50)}...</Text>
-              <Text style={[styles.preco, { color: theme.text }]}>R$ {item.preco}</Text>
+              <Text style={[styles.nome, { color: colors.text }]}>{item.nome}</Text>
+              <Text style={[styles.desc, { color: colors.text }]}>{item.descricao?.slice(0, 50)}...</Text>
+              <Text style={[styles.preco, { color: colors.text }]}>R$ {item.preco}</Text>
             </View>
 
             <TouchableOpacity onPress={() => desativarItem(item)}>
-              <Text style={[styles.desativar, { color: theme.danger }]}>Desativar</Text>
+              <Text style={[styles.desativar, { color: colors.danger }]}>Desativar</Text>
             </TouchableOpacity>
           </View>
         ))}
 
-        <Text style={[styles.subtitulo, { color: theme.text }]}>Itens Desativados</Text>
+        <Text style={[styles.subtitulo, { color: colors.text }]}>Itens Desativados</Text>
 
         {itensDesativados.map((item) => (
           <View
@@ -132,15 +132,15 @@ export default function AdminGerenciarCardapioScreen() {
             style={[
               styles.cardDesativado,
               {
-                backgroundColor: theme.cardDesativado,
-                borderColor: theme.border,
+                backgroundColor: colors.cardDesativado,
+                borderColor: colors.secondary,
               },
             ]}
           >
-            <Text style={[styles.nome, { color: theme.text }]}>{item.nome}</Text>
+            <Text style={[styles.nome, { color: colors.text }]}>{item.nome}</Text>
 
             <TouchableOpacity onPress={() => ativarItem(item)}>
-              <Text style={[styles.ativar, { color: theme.success }]}>Ativar</Text>
+              <Text style={[styles.ativar, { color: colors.primary }]}>Ativar</Text>
             </TouchableOpacity>
           </View>
         ))}

@@ -2,8 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, TextInput, StyleSheet, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../Services/supabaseService';
+import { useTheme } from '../Context/ThemeContext';
 
 export default function GSalScreen() {
+  const { theme, colors } = useTheme(); // <<--- AGORA USANDO O TEMA CERTO
+
   const [users, setUsers] = useState([]);
   const [valorTickets, setValorTickets] = useState('');
   const [valorSaldo, setValorSaldo] = useState('');
@@ -13,10 +16,7 @@ export default function GSalScreen() {
       const cache = await AsyncStorage.getItem('usuarios_cache');
       if (cache) {
         const data = JSON.parse(cache);
-        console.log('[cache] carregado', data.length);
         setUsers(data);
-      } else {
-        console.log('[cache] vazio');
       }
     } catch (err) {
       console.log('[cache] erro ao carregar', err.message);
@@ -26,7 +26,6 @@ export default function GSalScreen() {
   async function salvarCache(lista) {
     try {
       await AsyncStorage.setItem('usuarios_cache', JSON.stringify(lista));
-      console.log('[cache] salvo com sucesso');
     } catch (err) {
       console.log('[cache] erro ao salvar', err.message);
     }
@@ -38,12 +37,8 @@ export default function GSalScreen() {
         .from('usuarios')
         .select('id, nome, tickets, saldo');
 
-      if (error) {
-        console.log('[carregarSupabase] erro:', error.message);
-        return;
-      }
+      if (error) return console.log('[supabase] erro:', error.message);
 
-      console.log('[supabase] carregado', data.length);
       setUsers(data);
       salvarCache(data);
     } catch (err) {
@@ -52,8 +47,6 @@ export default function GSalScreen() {
   }
 
   async function atualizarSupabase(id, novoTickets, novoSaldo) {
-    console.log('[supabase] iniciando update', id);
-
     const { error } = await supabase
       .from('usuarios')
       .update({
@@ -67,7 +60,6 @@ export default function GSalScreen() {
       return false;
     }
 
-    console.log('[supabase] atualizado com sucesso');
     return true;
   }
 
@@ -79,12 +71,9 @@ export default function GSalScreen() {
 
     const v = parseInt(valorTickets);
 
-    const listaAtualizada = users.map(u => {
-      if (u.id === userId) {
-        return { ...u, tickets: u.tickets + v };
-      }
-      return u;
-    });
+    const listaAtualizada = users.map(u =>
+      u.id === userId ? { ...u, tickets: u.tickets + v } : u
+    );
 
     setUsers(listaAtualizada);
     salvarCache(listaAtualizada);
@@ -101,12 +90,9 @@ export default function GSalScreen() {
 
     const v = parseInt(valorTickets);
 
-    const listaAtualizada = users.map(u => {
-      if (u.id === userId) {
-        return { ...u, tickets: u.tickets - v };
-      }
-      return u;
-    });
+    const listaAtualizada = users.map(u =>
+      u.id === userId ? { ...u, tickets: u.tickets - v } : u
+    );
 
     setUsers(listaAtualizada);
     salvarCache(listaAtualizada);
@@ -123,12 +109,9 @@ export default function GSalScreen() {
 
     const v = parseInt(valorSaldo);
 
-    const listaAtualizada = users.map(u => {
-      if (u.id === userId) {
-        return { ...u, saldo: (u.saldo || 0) + v };
-      }
-      return u;
-    });
+    const listaAtualizada = users.map(u =>
+      u.id === userId ? { ...u, saldo: (u.saldo || 0) + v } : u
+    );
 
     setUsers(listaAtualizada);
     salvarCache(listaAtualizada);
@@ -145,12 +128,9 @@ export default function GSalScreen() {
 
     const v = parseInt(valorSaldo);
 
-    const listaAtualizada = users.map(u => {
-      if (u.id === userId) {
-        return { ...u, saldo: (u.saldo || 0) - v };
-      }
-      return u;
-    });
+    const listaAtualizada = users.map(u =>
+      u.id === userId ? { ...u, saldo: (u.saldo || 0) - v } : u
+    );
 
     setUsers(listaAtualizada);
     salvarCache(listaAtualizada);
@@ -165,22 +145,32 @@ export default function GSalScreen() {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.titulo}>Gerenciar Saldo</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.titulo, { color: colors.text }]}>
+        Gerenciar Saldo
+      </Text>
 
-      <Text style={styles.label}>Alterar Tickets</Text>
+      <Text style={[styles.label, { color: colors.text }]}>Alterar Tickets</Text>
       <TextInput
-        style={styles.input}
+        style={[
+          styles.input,
+          { borderColor: colors.secondary, color: colors.text }
+        ]}
         placeholder="Valor para tickets"
+        placeholderTextColor={colors.placeholder}
         keyboardType="numeric"
         value={valorTickets}
         onChangeText={setValorTickets}
       />
 
-      <Text style={styles.label}>Alterar Saldo</Text>
+      <Text style={[styles.label, { color: colors.text }]}>Alterar Saldo</Text>
       <TextInput
-        style={styles.input}
+        style={[
+          styles.input,
+          { borderColor: colors.secondary, color: colors.text }
+        ]}
         placeholder="Valor para saldo"
+        placeholderTextColor={colors.placeholder}
         keyboardType="numeric"
         value={valorSaldo}
         onChangeText={setValorSaldo}
@@ -190,31 +180,46 @@ export default function GSalScreen() {
         data={users}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <View style={styles.userCard}>
-            <Text style={styles.nome}>{item.nome}</Text>
-            <Text style={styles.tickets}>Tickets: {item.tickets}</Text>
-            <Text style={styles.tickets}>Saldo: R$ {item.saldo ?? 0}</Text>
+          <View style={[styles.userCard, { backgroundColor: colors.secondary }]}>
+            <Text style={[styles.nome, { color: colors.text }]}>{item.nome}</Text>
+            <Text style={[styles.tickets, { color: colors.text }]}>
+              Tickets: {item.tickets}
+            </Text>
+            <Text style={[styles.tickets, { color: colors.text }]}>
+              Saldo: R$ {item.saldo ?? 0}
+            </Text>
 
             <View style={styles.botoes}>
-              <TouchableOpacity style={styles.btnAdd} onPress={() => adicionarTickets(item.id)}>
+              <TouchableOpacity
+                style={[styles.btnAdd, { backgroundColor: colors.primary }]}
+                onPress={() => adicionarTickets(item.id)}
+              >
                 <Text style={styles.btnTxt}>+ Tickets</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.btnRem} onPress={() => removerTickets(item.id)}>
+              <TouchableOpacity
+                style={[styles.btnRem, { backgroundColor: colors.danger }]}
+                onPress={() => removerTickets(item.id)}
+              >
                 <Text style={styles.btnTxt}>- Tickets</Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.botoes}>
-              <TouchableOpacity style={styles.btnAdd} onPress={() => adicionarSaldo(item.id)}>
+              <TouchableOpacity
+                style={[styles.btnAdd, { backgroundColor: colors.primary }]}
+                onPress={() => adicionarSaldo(item.id)}
+              >
                 <Text style={styles.btnTxt}>+ Saldo</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.btnRem} onPress={() => removerSaldo(item.id)}>
+              <TouchableOpacity
+                style={[styles.btnRem, { backgroundColor: colors.danger }]}
+                onPress={() => removerSaldo(item.id)}
+              >
                 <Text style={styles.btnTxt}>- Saldo</Text>
               </TouchableOpacity>
             </View>
-
           </View>
         )}
       />
@@ -223,19 +228,17 @@ export default function GSalScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#FFF' },
+  container: { flex: 1, padding: 20 },
   titulo: { fontSize: 22, fontWeight: 'bold', marginBottom: 15 },
   label: { fontSize: 16, fontWeight: 'bold', marginVertical: 5 },
   input: {
     borderWidth: 1,
-    borderColor: '#aaa',
     padding: 10,
     marginBottom: 20,
     borderRadius: 8
   },
   userCard: {
     padding: 15,
-    backgroundColor: '#f5f5f5',
     marginBottom: 10,
     borderRadius: 10
   },
@@ -244,13 +247,11 @@ const styles = StyleSheet.create({
   botoes: { flexDirection: 'row', marginTop: 10, gap: 10 },
   btnAdd: {
     flex: 1,
-    backgroundColor: 'green',
     padding: 10,
     borderRadius: 8
   },
   btnRem: {
     flex: 1,
-    backgroundColor: 'red',
     padding: 10,
     borderRadius: 8
   },
