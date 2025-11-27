@@ -6,7 +6,7 @@ import { useTheme } from "../Context/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function AdminGerenciarCardapioScreen() {
-  const { colors } = useTheme();
+  const { colors, theme } = useTheme(); // <- agora pega TEMA também
 
   const [itensAtivos, setItensAtivos] = useState([]);
   const [itensDesativados, setItensDesativados] = useState([]);
@@ -94,7 +94,7 @@ export default function AdminGerenciarCardapioScreen() {
         <TextInput
           style={[styles.input, { flex: 2, borderColor: colors.secondary, color: colors.text, backgroundColor: colors.input }]}
           placeholder="Nome do novo item"
-          placeholderTextColor={colors.placeholder}
+          placeholderTextColor={theme === "dark" ? "#fff" : colors.placeholder}
           value={novoItem}
           onChangeText={setNovoItem}
         />
@@ -102,7 +102,7 @@ export default function AdminGerenciarCardapioScreen() {
         <TextInput
           style={[styles.input, { width: 90, borderColor: colors.secondary, color: colors.text, backgroundColor: colors.input }]}
           placeholder="Preço"
-          placeholderTextColor={colors.placeholder}
+          placeholderTextColor={theme === "dark" ? "#fff" : colors.placeholder}
           keyboardType="numeric"
           value={novoPreco}
           onChangeText={setNovoPreco}
@@ -112,7 +112,7 @@ export default function AdminGerenciarCardapioScreen() {
       <TextInput
         style={[styles.input, { borderColor: colors.secondary, color: colors.text, backgroundColor: colors.input }]}
         placeholder="Descrição"
-        placeholderTextColor={colors.placeholder}
+        placeholderTextColor={theme === "dark" ? "#fff" : colors.placeholder}
         value={novaDescricao}
         onChangeText={setNovaDescricao}
       />
@@ -129,6 +129,7 @@ export default function AdminGerenciarCardapioScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} style={{ marginTop: 20 }}>
         <Text style={[styles.subtitulo, { color: colors.text }]}>Itens Ativos</Text>
+
         {itensAtivos.map((item) => (
           <View key={item.id} style={[styles.card, { backgroundColor: colors.card, borderColor: colors.secondary }]}>
             {item.imagem && <Image source={{ uri: item.imagem }} style={styles.img} />}

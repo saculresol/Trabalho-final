@@ -40,7 +40,7 @@ export default function GSalScreen() {
         .from('usuarios')
         .select('id, nome, tickets, saldo, tipo, ativo')
         .eq('tipo', 'comum')
-        .eq('ativo', true); 
+        .eq('ativo', true);
 
       if (error) return console.log('[supabase] erro:', error.message);
 
@@ -159,10 +159,14 @@ export default function GSalScreen() {
       <TextInput
         style={[
           styles.input,
-          { borderColor: colors.secondary, color: colors.text }
+          {
+            borderColor: "#000",
+            color: colors.text,
+            backgroundColor: theme === "dark" ? "#3A3A3A" : "#fff"
+          }
         ]}
         placeholder="Valor para tickets"
-        placeholderTextColor={colors.placeholder}
+        placeholderTextColor={theme === "dark" ? "gray" : colors.placeholder}
         keyboardType="numeric"
         value={valorTickets}
         onChangeText={setValorTickets}
@@ -172,10 +176,14 @@ export default function GSalScreen() {
       <TextInput
         style={[
           styles.input,
-          { borderColor: colors.secondary, color: colors.text }
+          {
+            borderColor: "#000",
+            color: colors.text,
+            backgroundColor: theme === "dark" ? "#3A3A3A" : "#fff"
+          }
         ]}
         placeholder="Valor para saldo"
-        placeholderTextColor={colors.placeholder}
+        placeholderTextColor={theme === "dark" ? "gray" : colors.placeholder}
         keyboardType="numeric"
         value={valorSaldo}
         onChangeText={setValorSaldo}
@@ -206,7 +214,9 @@ export default function GSalScreen() {
                 style={[styles.btnRem, { backgroundColor: 'red' }]}
                 onPress={() => removerTickets(item.id)}
               >
-                <Text style={styles.btnTxt}>- Tickets</Text>
+                <Text style={[styles.btnTxt, { color: theme === "dark" ? "#fff" : "#000" }]}>
+                  - Tickets
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -222,7 +232,9 @@ export default function GSalScreen() {
                 style={[styles.btnRem, { backgroundColor: 'red' }]}
                 onPress={() => removerSaldo(item.id)}
               >
-                <Text style={styles.btnTxt}>- Saldo</Text>
+                <Text style={[styles.btnTxt, { color: theme === "dark" ? "#fff" : "#000" }]}>
+                  - Saldo
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

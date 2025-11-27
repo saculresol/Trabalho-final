@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, TextInput, Modal, Alert, StyleSheet, } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, TextInput, Modal, Alert, StyleSheet } from 'react-native';
 import { supabase } from '../Services/supabaseService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../Context/ThemeContext';
 
 export default function GerenciarUsuariosScreen() {
-  const { colors, theme } = useTheme(); 
+  const { colors, theme } = useTheme();
   const [usuarios, setUsuarios] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [usuarioEditando, setUsuarioEditando] = useState(null);
@@ -14,17 +14,8 @@ export default function GerenciarUsuariosScreen() {
   const [saldo, setSaldo] = useState('');
 
   async function carregarUsuarios() {
-    const { data, error } = await supabase
-      .from('usuarios')
-      .select('*')
-      .eq('tipo', 'comum');
-
-    if (error) {
-      console.log(error);
-      return;
-    }
-
-    setUsuarios(data);
+    const { data, error } = await supabase.from('usuarios').select('*').eq('tipo', 'comum');
+    if (!error) setUsuarios(data);
   }
 
   useEffect(() => {
@@ -53,7 +44,6 @@ export default function GerenciarUsuariosScreen() {
       .eq('id', usuarioEditando.id);
 
     if (error) {
-      console.log(error);
       Alert.alert('Erro ao salvar alterações');
       return;
     }
@@ -80,7 +70,6 @@ export default function GerenciarUsuariosScreen() {
       .eq('id', usuarioEditando.id);
 
     if (error) {
-      console.log(error);
       Alert.alert('Erro ao mudar status');
       return;
     }
@@ -96,7 +85,17 @@ export default function GerenciarUsuariosScreen() {
         data={usuarios}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <TouchableOpacity style={[styles.card, { backgroundColor: colors.card }]} onPress={() => abrirModal(item)}>
+          <TouchableOpacity
+            style={[
+              styles.card,
+              {
+                backgroundColor: colors.card,
+                borderColor: "black",
+                borderWidth: 1
+              }
+            ]}
+            onPress={() => abrirModal(item)}
+          >
             <Text style={[styles.nome, { color: colors.text }]}>{item.nome}</Text>
             <Text style={[styles.turma, { color: colors.text }]}>{item.turma ?? 'Sem turma'}</Text>
             <Text style={{ color: colors.text }}>Status: {item.ativo ? 'Ativo' : 'Inativo'}</Text>
@@ -105,54 +104,133 @@ export default function GerenciarUsuariosScreen() {
       />
 
       <Modal visible={modalVisible} transparent animationType="fade">
-        <View style={styles.modal}>
-          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+        <View
+          style={[
+            styles.modal,
+            { backgroundColor: theme === "dark" ? "rgba(0,0,0,0.8)" : "rgba(0,0,0,0.3)" }
+          ]}
+        >
+          <View
+            style={[
+              styles.modalContent,
+              { backgroundColor: theme === "dark" ? "#000" : colors.card }
+            ]}
+          >
             <Text style={[styles.modalTitulo, { color: colors.text }]}>Editar Usuário</Text>
 
             <TextInput
               value={nome}
               onChangeText={setNome}
-              style={[styles.input, { backgroundColor: theme.mode === 'light' ? '#fff' : colors.input, color: colors.text }]}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: theme === "dark" ? "#333" : "#fff",
+                  color: colors.text,
+                  borderColor: "black",
+                  borderWidth: 1
+                },
+              ]}
               placeholder="Nome"
-              placeholderTextColor={colors.placeholder}
+              placeholderTextColor={theme === "dark" ? "#aaa" : "#666"}
             />
 
             <TextInput
               value={turma}
               onChangeText={setTurma}
-              style={[styles.input, { backgroundColor: theme.mode === 'light' ? '#fff' : colors.input, color: colors.text }]}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: theme === "dark" ? "#333" : "#fff",
+                  color: colors.text,
+                  borderColor: "black",
+                  borderWidth: 1
+                },
+              ]}
               placeholder="Turma"
-              placeholderTextColor={colors.placeholder}
+              placeholderTextColor={theme === "dark" ? "#aaa" : "#666"}
             />
 
             <TextInput
               value={saldo}
               onChangeText={setSaldo}
-              style={[styles.input, { backgroundColor: theme.mode === 'light' ? '#fff' : colors.input, color: colors.text }]}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: theme === "dark" ? "#333" : "#fff",
+                  color: colors.text,
+                  borderColor: "black",
+                  borderWidth: 1
+                },
+              ]}
               placeholder="Saldo"
               keyboardType="numeric"
-              placeholderTextColor={colors.placeholder}
+              placeholderTextColor={theme === "dark" ? "#aaa" : "#666"}
             />
 
             <TouchableOpacity
-              style={[styles.btnAtivar, { backgroundColor: usuarioEditando?.ativo ? colors.danger : colors.success }]}
+              style={{
+                marginTop: 10,
+                paddingVertical: 10,
+                backgroundColor: theme === "dark" ? "#333" : "#fff",
+                borderWidth: 1,
+                borderColor: "black",
+                borderRadius: 6,
+                alignItems: "center"
+              }}
               onPress={alternarAtivo}
             >
-              <Text style={[styles.btnText, { color: colors.textButton || '#fff' }]}>
-                {usuarioEditando?.ativo ? 'DESATIVAR' : 'REATIVAR'}
+              <Text
+                style={{
+                  color: theme === "dark" ? "#fff" : (usuarioEditando?.ativo ? colors.danger : colors.success),
+                  fontSize: 16,
+                  fontWeight: "700"
+                }}
+              >
+                {usuarioEditando?.ativo ? "DESATIVAR" : "REATIVAR"}
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.salvar, { backgroundColor: colors.primary }]} onPress={salvarAlteracoes}>
-              <Text style={[styles.textoSalvar, { color: colors.textButton || '#fff' }]}>Salvar Alterações</Text>
+            <TouchableOpacity
+              style={[
+                styles.salvar,
+                {
+                  backgroundColor: theme === "dark" ? "#4CAF50" : colors.primary,
+                  borderWidth: theme === "dark" ? 1 : 0,
+                  borderColor: theme === "dark" ? "black" : "transparent"
+                }
+              ]}
+              onPress={salvarAlteracoes}
+            >
+              <Text style={[styles.textoSalvar, { color: "#fff" }]}>Salvar Alterações</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => setModalVisible(false)}>
-              <Text style={[styles.cancelar, { color: colors.danger }]}>Cancelar</Text>
+            <TouchableOpacity
+              onPress={() => setModalVisible(false)}
+              style={{
+                marginTop: 10,
+                paddingVertical: 8,
+                borderWidth: 1,
+                borderColor: "black",
+                borderRadius: 6,
+                alignItems: "center",
+                backgroundColor: theme === "dark" ? "#333" : "#fff"
+              }}
+            >
+              <Text
+                style={{
+                  color: theme === "dark" ? "#fff" : colors.danger,
+                  fontSize: 16,
+                  fontWeight: "600"
+                }}
+              >
+                Cancelar
+              </Text>
             </TouchableOpacity>
+
           </View>
         </View>
       </Modal>
+
     </View>
   );
 }
@@ -167,13 +245,10 @@ const styles = StyleSheet.create({
   },
   nome: { fontSize: 18, fontWeight: 'bold' },
   turma: { fontSize: 15, marginBottom: 5 },
-  modal: { flex: 1, backgroundColor: '#0008', justifyContent: 'center', alignItems: 'center' },
+  modal: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   modalContent: { width: '85%', padding: 20, borderRadius: 15 },
   modalTitulo: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
   input: { padding: 10, borderRadius: 10, marginBottom: 10 },
-  btnAtivar: { padding: 12, borderRadius: 10, alignItems: 'center', marginBottom: 10 },
-  btnText: { fontWeight: 'bold' },
   salvar: { padding: 12, borderRadius: 10, alignItems: 'center', marginTop: 5 },
   textoSalvar: { fontWeight: 'bold' },
-  cancelar: { marginTop: 10, textAlign: 'center', fontWeight: 'bold' },
 });
