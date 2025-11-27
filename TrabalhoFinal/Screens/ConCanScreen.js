@@ -7,7 +7,7 @@ export default function ConCanScreen() {
 const { theme, toggleTheme } = useTheme();
 
 const alternarTema = async () => {
-toggleTheme(); // alterna tema global
+toggleTheme(); 
 const novoTema = theme === 'light' ? 'dark' : 'light';
 await AsyncStorage.setItem('tema', novoTema);
 Alert.alert('Sucesso', `Tema alterado para ${novoTema === 'light' ? 'claro' : 'escuro'}!`);
@@ -32,7 +32,7 @@ borda: '#4B5563',
 
 return (
 <View style={[styles.container, { backgroundColor: estilosAtuais.backgroundColor }]}>
-<Text style={[styles.titulo, { color: estilosAtuais.color }]}>Configurações da Cantina</Text>
+<Text style={[styles.titulo, { color: estilosAtuais.color }]}>Configurações do Painel de Admin</Text>
 
   <TouchableOpacity
     style={[styles.botao, { backgroundColor: estilosAtuais.botaoBg, borderColor: estilosAtuais.borda }]}

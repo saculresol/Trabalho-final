@@ -10,6 +10,29 @@ export async function criarUsuario(nome, email, senha, tipo = 'comum') {
   return data[0]
 }
 
+export async function updateUserInfo(id, nome, turma) {
+  return await supabase
+    .from('usuarios')
+    .update({ nome, turma })
+    .eq('id', id);
+}
+
+export async function setUserActive(id, ativo) {
+  return await supabase
+    .from('usuarios')
+    .update({ ativo })
+    .eq('id', id);
+}
+
+export async function getUserById(id) {
+  return await supabase
+    .from('usuarios')
+    .select('*')
+    .eq('id', id)
+    .single();
+}
+
+
 export async function loginUsuario(email, senha) {
   const { data, error } = await supabase
     .from('usuarios')

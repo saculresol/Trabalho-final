@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { loginUsuario } from '../Services/userService';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // ← ADICIONADO
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [error, setError] = useState('');
+
   const handleLogin = async () => {
     setError('');
 
@@ -21,6 +23,20 @@ export default function LoginScreen({ navigation }) {
 
     try {
       const usuario = await loginUsuario(email, senha);
+
+      if (usuario.ativo === false) {
+        Alert.alert(
+          'Conta desativada',
+          'Procure a administração para reativar sua conta.'
+        );
+        return;
+      }
+
+      await AsyncStorage.multiSet([
+        ['user_id', String(usuario.id)],
+        ['nome', usuario.nome || ''],
+        ['turma', usuario.turma || '']
+      ]);
 
       Alert.alert('Bem-vindo', usuario.nome);
 
@@ -74,7 +90,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: 24,
-    backgroundColor: '#F2F4F7', 
+    backgroundColor: '#F2F4F7',
   },
   title: {
     fontSize: 36,

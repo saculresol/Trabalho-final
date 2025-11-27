@@ -20,7 +20,7 @@ export default function PerfilScreen({ navigation }) {
       const { data, error } = await supabase
         .from('usuarios')
         .select('nome, turma, imagem')
-        .eq('id', Number(userId))  // <- converter para número
+        .eq('id', Number(userId))
         .single();
 
       if (error) {
@@ -32,14 +32,33 @@ export default function PerfilScreen({ navigation }) {
         setNome(data.nome || '');
         setTurma(data.turma || '');
         setImagem(data.imagem || null);
+
+        await AsyncStorage.multiSet([
+          ['nome', data.nome || ''],
+          ['turma', data.turma || ''],
+        ]);
       }
     } catch (err) {
       console.error('Erro ao buscar dados do Supabase:', err);
     }
   };
 
+  const carregarDadosCache = async () => {
+    try {
+      const nomeCache = await AsyncStorage.getItem('nome');
+      const turmaCache = await AsyncStorage.getItem('turma');
+      if (nomeCache) setNome(nomeCache);
+      if (turmaCache) setTurma(turmaCache);
+    } catch (err) {
+      console.error('Erro ao carregar dados do cache:', err);
+    }
+  };
+
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', carregarDadosSupabase);
+    const unsubscribe = navigation.addListener('focus', async () => {
+      await carregarDadosCache();
+      await carregarDadosSupabase();
+    });
     return unsubscribe;
   }, [navigation]);
 

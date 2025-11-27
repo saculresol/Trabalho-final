@@ -1,168 +1,155 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View, Text, FlatList, TouchableOpacity, Modal, TextInput, StyleSheet, Alert
-} from 'react-native';
-import { useTheme } from '../Context/ThemeContext';
+import React, { useEffect, useState } from 'react';
+import { View, Text, FlatList, TouchableOpacity, TextInput, Modal, Alert, StyleSheet, } from 'react-native';
+import { supabase } from '../Services/supabaseService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { supabase } from '../Services/supabase';
+import { useTheme } from '../Context/ThemeContext';
 
-export default function GPerScreen() {
-  const { colors } = useTheme();
-
+export default function GerenciarUsuariosScreen() {
+  const { colors, theme } = useTheme(); 
   const [usuarios, setUsuarios] = useState([]);
-  const [carregando, setCarregando] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
-  const [usuarioSelecionado, setUsuarioSelecionado] = useState(null);
-  const [novoNome, setNovoNome] = useState('');
-  const [novaTurma, setNovaTurma] = useState('');
+  const [usuarioEditando, setUsuarioEditando] = useState(null);
+  const [nome, setNome] = useState('');
+  const [turma, setTurma] = useState('');
+  const [saldo, setSaldo] = useState('');
 
-  const carregarUsuarios = async () => {
-    setCarregando(true);
-    try {
-      const { data, error } = await supabase
-        .from('usuarios')
-        .select('*')
-        .order('nome', { ascending: true });
+  async function carregarUsuarios() {
+    const { data, error } = await supabase
+      .from('usuarios')
+      .select('*')
+      .eq('tipo', 'comum');
 
-      if (error) throw error;
-
-      const somenteNormais = data.filter(u => u.tipo !== 'admin');
-      setUsuarios(somenteNormais);
-
-      await AsyncStorage.setItem('usuarios', JSON.stringify(somenteNormais));
-
-    } catch (err) {
-      Alert.alert('Erro', 'Não foi possível carregar os usuários.');
-      setUsuarios([]);
-    } finally {
-      setCarregando(false);
+    if (error) {
+      console.log(error);
+      return;
     }
-  };
+
+    setUsuarios(data);
+  }
 
   useEffect(() => {
     carregarUsuarios();
   }, []);
 
-  const abrirEdicao = (usuario) => {
-    setUsuarioSelecionado(usuario);
-    setNovoNome(usuario.nome || '');
-    setNovaTurma(usuario.turma || '');
+  function abrirModal(u) {
+    setUsuarioEditando(u);
+    setNome(u.nome);
+    setTurma(u.turma ?? '');
+    setSaldo(String(u.saldo ?? 0));
     setModalVisible(true);
-  };
+  }
 
-  const salvarEdicao = async () => {
-    if (!usuarioSelecionado) return;
+  async function salvarAlteracoes() {
+    if (!usuarioEditando) return;
 
-    if (!novoNome.trim()) {
-      Alert.alert('Atenção', 'Nome não pode ficar vazio.');
+    const { error } = await supabase
+      .from('usuarios')
+      .update({
+        nome,
+        turma,
+        saldo: Number(saldo),
+        ativo: usuarioEditando.ativo,
+      })
+      .eq('id', usuarioEditando.id);
+
+    if (error) {
+      console.log(error);
+      Alert.alert('Erro ao salvar alterações');
       return;
     }
 
-    try {
-      const atualizado = { ...usuarioSelecionado, nome: novoNome.trim(), turma: novaTurma.trim() };
-
-      const listaAtualizada = usuarios.map(u => u.id === atualizado.id ? atualizado : u);
-      setUsuarios(listaAtualizada);
-
-      await AsyncStorage.setItem('usuarios', JSON.stringify(listaAtualizada));
-
-      const userIdLocal = await AsyncStorage.getItem('user_id');
-      if (userIdLocal && userIdLocal === atualizado.id.toString()) {
-        await AsyncStorage.multiSet([
-          ['nome', atualizado.nome],
-          ['turma', atualizado.turma],
-        ]);
-      }
-
-      Alert.alert('Sucesso', 'Usuário atualizado.');
-      setModalVisible(false);
-      setUsuarioSelecionado(null);
-
-    } catch (err) {
-      Alert.alert('Erro', 'Não foi possível salvar alterações.');
+    const userIdCache = await AsyncStorage.getItem('user_id');
+    if (userIdCache && Number(userIdCache) === usuarioEditando.id) {
+      await AsyncStorage.multiSet([
+        ['nome', nome],
+        ['turma', turma],
+      ]);
     }
-  };
+
+    setModalVisible(false);
+    carregarUsuarios();
+  }
+
+  async function alternarAtivo() {
+    const novoStatus = !usuarioEditando.ativo;
+    setUsuarioEditando({ ...usuarioEditando, ativo: novoStatus });
+
+    const { error } = await supabase
+      .from('usuarios')
+      .update({ ativo: novoStatus })
+      .eq('id', usuarioEditando.id);
+
+    if (error) {
+      console.log(error);
+      Alert.alert('Erro ao mudar status');
+      return;
+    }
+
+    carregarUsuarios();
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.titulo, { color: colors.text }]}>Gerenciamento de Usuários</Text>
+      <Text style={[styles.titulo, { color: colors.text }]}>Gerenciar Usuários</Text>
 
-      {carregando ? (
-        <Text style={{ color: colors.text }}>Carregando...</Text>
-      ) : (
-        <FlatList
-          data={usuarios}
-          keyExtractor={(item) => item.id.toString()}
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[styles.card, { backgroundColor: colors.card }]}
-              onPress={() => abrirEdicao(item)}
-            >
-              <View style={styles.cardLinha}>
-                <View>
-                  <Text style={[styles.nome, { color: colors.text }]}>{item.nome}</Text>
-                  <Text style={{ color: colors.text }}>Turma: {item.turma}</Text>
-                </View>
-                <Text style={[styles.btnEditarTexto, { color: colors.primary }]}>Editar</Text>
-              </View>
-            </TouchableOpacity>
-          )}
-        />
-      )}
+      <FlatList
+        data={usuarios}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <TouchableOpacity style={[styles.card, { backgroundColor: colors.card }]} onPress={() => abrirModal(item)}>
+            <Text style={[styles.nome, { color: colors.text }]}>{item.nome}</Text>
+            <Text style={[styles.turma, { color: colors.text }]}>{item.turma ?? 'Sem turma'}</Text>
+            <Text style={{ color: colors.text }}>Status: {item.ativo ? 'Ativo' : 'Inativo'}</Text>
+          </TouchableOpacity>
+        )}
+      />
 
-      {/* MODAL */}
-      <Modal visible={modalVisible} animationType="slide" transparent={true}>
-        <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
-          <View style={[styles.modalBox, { backgroundColor: colors.card }]}>
-            
-            <Text style={[styles.modalTitulo, { color: colors.text }]}>
-              Editar Usuário
-            </Text>
+      <Modal visible={modalVisible} transparent animationType="fade">
+        <View style={styles.modal}>
+          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+            <Text style={[styles.modalTitulo, { color: colors.text }]}>Editar Usuário</Text>
 
-            <Text style={[styles.label, { color: colors.text }]}>Nome</Text>
             <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.secondary,
-                  color: colors.text,
-                  borderColor: colors.text,
-                }
-              ]}
-              value={novoNome}
-              onChangeText={setNovoNome}
+              value={nome}
+              onChangeText={setNome}
+              style={[styles.input, { backgroundColor: theme.mode === 'light' ? '#fff' : colors.input, color: colors.text }]}
               placeholder="Nome"
               placeholderTextColor={colors.placeholder}
             />
 
-            <Text style={[styles.label, { color: colors.text }]}>Turma</Text>
             <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.secondary,
-                  color: colors.text,
-                  borderColor: colors.text,
-                }
-              ]}
-              value={novaTurma}
-              onChangeText={setNovaTurma}
+              value={turma}
+              onChangeText={setTurma}
+              style={[styles.input, { backgroundColor: theme.mode === 'light' ? '#fff' : colors.input, color: colors.text }]}
               placeholder="Turma"
               placeholderTextColor={colors.placeholder}
             />
 
+            <TextInput
+              value={saldo}
+              onChangeText={setSaldo}
+              style={[styles.input, { backgroundColor: theme.mode === 'light' ? '#fff' : colors.input, color: colors.text }]}
+              placeholder="Saldo"
+              keyboardType="numeric"
+              placeholderTextColor={colors.placeholder}
+            />
+
             <TouchableOpacity
-              style={[styles.btnSalvar, { backgroundColor: colors.primary }]}
-              onPress={salvarEdicao}
+              style={[styles.btnAtivar, { backgroundColor: usuarioEditando?.ativo ? colors.danger : colors.success }]}
+              onPress={alternarAtivo}
             >
-              <Text style={styles.btnSalvarText}>Salvar Alterações</Text>
+              <Text style={[styles.btnText, { color: colors.textButton || '#fff' }]}>
+                {usuarioEditando?.ativo ? 'DESATIVAR' : 'REATIVAR'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.salvar, { backgroundColor: colors.primary }]} onPress={salvarAlteracoes}>
+              <Text style={[styles.textoSalvar, { color: colors.textButton || '#fff' }]}>Salvar Alterações</Text>
             </TouchableOpacity>
 
             <TouchableOpacity onPress={() => setModalVisible(false)}>
-              <Text style={[styles.fechar, { color: colors.text }]}>Fechar</Text>
+              <Text style={[styles.cancelar, { color: colors.danger }]}>Cancelar</Text>
             </TouchableOpacity>
-
           </View>
         </View>
       </Modal>
@@ -171,63 +158,22 @@ export default function GPerScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 20, paddingTop: 20 },
-  titulo: { fontSize: 26, fontWeight: '700', marginBottom: 20 },
-
+  container: { flex: 1, padding: 20 },
+  titulo: { fontSize: 22, fontWeight: 'bold', marginBottom: 20 },
   card: {
-    padding: 18,
-    borderRadius: 16,
-    marginBottom: 14,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 8
-  },
-
-  cardLinha: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  },
-
-  nome: { fontSize: 18, fontWeight: '600' },
-  btnEditarTexto: { fontSize: 15, fontWeight: '700' },
-
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 25,
-  },
-
-  modalBox: {
-    width: '100%',
-    borderRadius: 18,
-    padding: 25,
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 10
-  },
-
-  modalTitulo: { fontSize: 22, fontWeight: '800', textAlign: 'center', marginBottom: 20 },
-
-  label: { fontSize: 15, marginTop: 12, marginBottom: 5, fontWeight: '600' },
-
-  input: {
-    padding: 14,
+    padding: 15,
+    marginBottom: 10,
     borderRadius: 10,
-    fontSize: 16,
-    borderWidth: 1,
   },
-
-  btnSalvar: {
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 20
-  },
-
-  btnSalvarText: { color: '#fff', fontWeight: 'bold', fontSize: 17 },
-
-  fechar: { marginTop: 18, textAlign: 'center', fontSize: 16, fontWeight: '500' },
+  nome: { fontSize: 18, fontWeight: 'bold' },
+  turma: { fontSize: 15, marginBottom: 5 },
+  modal: { flex: 1, backgroundColor: '#0008', justifyContent: 'center', alignItems: 'center' },
+  modalContent: { width: '85%', padding: 20, borderRadius: 15 },
+  modalTitulo: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
+  input: { padding: 10, borderRadius: 10, marginBottom: 10 },
+  btnAtivar: { padding: 12, borderRadius: 10, alignItems: 'center', marginBottom: 10 },
+  btnText: { fontWeight: 'bold' },
+  salvar: { padding: 12, borderRadius: 10, alignItems: 'center', marginTop: 5 },
+  textoSalvar: { fontWeight: 'bold' },
+  cancelar: { marginTop: 10, textAlign: 'center', fontWeight: 'bold' },
 });

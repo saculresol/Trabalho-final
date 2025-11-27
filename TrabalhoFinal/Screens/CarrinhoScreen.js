@@ -26,13 +26,11 @@ export default function CarrinhoScreen({ navigation }) {
 
   async function carregarSaldoETickets() {
     try {
-      // Carregar saldo
       const rawSaldos = await AsyncStorage.getItem('saldosUsuarios');
       const lista = rawSaldos ? JSON.parse(rawSaldos) : [];
       const usuario = lista.find(u => u.id === 'usuario_comum');
       if (usuario) setSaldo(Number(usuario.saldo));
 
-      // Carregar tickets
       const rawTickets = await AsyncStorage.getItem('tickets');
       if (rawTickets !== null) setTickets(Number(rawTickets));
     } catch (e) {
@@ -47,16 +45,13 @@ export default function CarrinhoScreen({ navigation }) {
     await AsyncStorage.setItem('carrinho', JSON.stringify(novoCarrinho));
   }
 
-  // =========================================
-  // SALVAR TRANSACAO NO HISTÓRICO
-  // =========================================
   async function salvarTransacao(tipo, total) {
     try {
       const novaTransacao = {
         id: Date.now(),
         nome: carrinho.map(item => item.nome).join(", "),
         preco: total,
-        tipo: tipo, // 'ticket' ou 'saldo'
+        tipo: tipo,
         data: new Date().toLocaleString(),
       };
 
@@ -71,9 +66,6 @@ export default function CarrinhoScreen({ navigation }) {
     }
   }
 
-  // =========================================
-  // FUNÇÃO DE COMPRA
-  // =========================================
   async function comprarCarrinho() {
     if (!carrinho || carrinho.length === 0) {
       Alert.alert("Carrinho vazio", "Adicione itens antes de comprar.");
@@ -86,7 +78,6 @@ export default function CarrinhoScreen({ navigation }) {
       "Escolha o método de pagamento",
       `Total: R$ ${total.toFixed(2)}`,
       [
-        // PAGAR COM TICKET
         {
           text: "Ticket",
           onPress: async () => {
@@ -107,7 +98,6 @@ export default function CarrinhoScreen({ navigation }) {
           }
         },
 
-        // PAGAR COM SALDO
         {
           text: "Saldo",
           onPress: async () => {
@@ -175,7 +165,7 @@ export default function CarrinhoScreen({ navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      
+
       <TouchableOpacity style={styles.goBackButton} onPress={() => navigation.goBack()}>
         <Text style={{ color: '#fff', fontWeight: 'bold' }}>Voltar</Text>
       </TouchableOpacity>

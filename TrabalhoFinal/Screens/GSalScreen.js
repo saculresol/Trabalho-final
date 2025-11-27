@@ -5,7 +5,7 @@ import { supabase } from '../Services/supabaseService';
 import { useTheme } from '../Context/ThemeContext';
 
 export default function GSalScreen() {
-  const { theme, colors } = useTheme(); // <<--- AGORA USANDO O TEMA CERTO
+  const { theme, colors } = useTheme();
 
   const [users, setUsers] = useState([]);
   const [valorTickets, setValorTickets] = useState('');
@@ -16,7 +16,10 @@ export default function GSalScreen() {
       const cache = await AsyncStorage.getItem('usuarios_cache');
       if (cache) {
         const data = JSON.parse(cache);
-        setUsers(data);
+
+        const filtrado = data.filter(u => u.tipo === 'comum' && u.ativo === true);
+
+        setUsers(filtrado);
       }
     } catch (err) {
       console.log('[cache] erro ao carregar', err.message);
@@ -35,7 +38,9 @@ export default function GSalScreen() {
     try {
       const { data, error } = await supabase
         .from('usuarios')
-        .select('id, nome, tickets, saldo');
+        .select('id, nome, tickets, saldo, tipo, ativo')
+        .eq('tipo', 'comum')
+        .eq('ativo', true); 
 
       if (error) return console.log('[supabase] erro:', error.message);
 
@@ -198,7 +203,7 @@ export default function GSalScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.btnRem, { backgroundColor: colors.danger }]}
+                style={[styles.btnRem, { backgroundColor: 'red' }]}
                 onPress={() => removerTickets(item.id)}
               >
                 <Text style={styles.btnTxt}>- Tickets</Text>
@@ -214,7 +219,7 @@ export default function GSalScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.btnRem, { backgroundColor: colors.danger }]}
+                style={[styles.btnRem, { backgroundColor: 'red' }]}
                 onPress={() => removerSaldo(item.id)}
               >
                 <Text style={styles.btnTxt}>- Saldo</Text>
