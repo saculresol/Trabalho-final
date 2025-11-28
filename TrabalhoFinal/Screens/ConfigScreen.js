@@ -1,14 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../Context/ThemeContext';
+import { supabase } from '../Services/supabaseService';
 
 export default function ConfigScreen({ navigation }) {
   const [nome, setNome] = useState('');
   const [turma, setTurma] = useState('');
   const [tema, setTema] = useState('light');
-  const { toggleTheme } = useTheme()
+  const [imagem, setImagem] = useState(null);
+  const { toggleTheme } = useTheme();
+
+  useEffect(() => {
+    carregarDados();
+  }, []);
+
+  const carregarDados = async () => {
+    try {
+      const userId = await AsyncStorage.getItem('user_id');
+      if (!userId) return;
+
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('nome, turma, imagem, tema')
+        .eq('id', Number(userId))
+        .single();
+
+      if (!error && data) {
+        setNome(data.nome || '');
+        setTurma(data.turma || '');
+        setImagem(data.imagem || null);
+        const temaAtual = data.tema || 'light';
+        setTema(temaAtual);
+        toggleTheme(temaAtual);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const salvarDados = async () => {
     if (!nome || !turma) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos.');
@@ -16,11 +47,27 @@ export default function ConfigScreen({ navigation }) {
     }
 
     try {
-      await AsyncStorage.setItem('nome', nome);
-      await AsyncStorage.setItem('turma', turma);
+      const userId = await AsyncStorage.getItem('user_id');
+      if (!userId) return;
+
+      const { error } = await supabase
+        .from('usuarios')
+        .update({ nome, turma, tema, imagem })
+        .eq('id', Number(userId));
+
+      if (error) throw error;
+
+      await AsyncStorage.multiSet([
+        ['nome', nome],
+        ['turma', turma],
+        ['tema', tema],
+        ['imagem', imagem || ''],
+      ]);
+
       Alert.alert('Sucesso', 'Dados salvos com sucesso!');
-    } catch (error) {
+    } catch (err) {
       Alert.alert('Erro', 'Não foi possível salvar os dados.');
+      console.error(err);
     }
   };
 
@@ -28,7 +75,7 @@ export default function ConfigScreen({ navigation }) {
     try {
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permissionResult.granted) {
-        Alert.alert('Permissão necessária', 'Você precisa permitir o acesso à galeria para alterar a imagem.');
+        Alert.alert('Permissão necessária', 'Você precisa permitir o acesso à galeria.');
         return;
       }
 
@@ -40,18 +87,38 @@ export default function ConfigScreen({ navigation }) {
       });
 
       if (!result.canceled) {
-        await AsyncStorage.setItem('imagem', result.assets[0].uri);
+        const uri = result.assets[0].uri;
+        setImagem(uri);
+
+        const userId = await AsyncStorage.getItem('user_id');
+        if (userId) {
+          const { error } = await supabase
+            .from('usuarios')
+            .update({ imagem: uri })
+            .eq('id', Number(userId));
+
+          if (error) throw error;
+        }
+
+        await AsyncStorage.setItem('imagem', uri);
         Alert.alert('Sucesso', 'Imagem alterada com sucesso!');
       }
-    } catch (error) {
-      console.error('Erro ao selecionar a imagem:', error);
+    } catch (err) {
+      Alert.alert('Erro', 'Não foi possível alterar a imagem.');
+      console.error(err);
     }
   };
 
   const alternarTema = async () => {
     const novoTema = tema === 'light' ? 'dark' : 'light';
     setTema(novoTema);
-    toggleTheme();
+    toggleTheme(novoTema);
+
+    const userId = await AsyncStorage.getItem('user_id');
+    if (userId) {
+      await supabase.from('usuarios').update({ tema: novoTema }).eq('id', Number(userId));
+    }
+
     await AsyncStorage.setItem('tema', novoTema);
     Alert.alert('Sucesso', `Tema alterado para ${novoTema === 'light' ? 'claro' : 'escuro'}!`);
   };
@@ -59,19 +126,19 @@ export default function ConfigScreen({ navigation }) {
   const estilosAtuais =
     tema === 'light'
       ? {
-        backgroundColor: '#F8F9FA',
-        color: '#2D3142',
-        botaoBg: '#E5E7EB',
-        botaoTexto: '#1F2937',
-        borda: '#D1D5DB',
-      }
+          backgroundColor: '#F8F9FA',
+          color: '#2D3142',
+          botaoBg: '#E5E7EB',
+          botaoTexto: '#1F2937',
+          borda: '#D1D5DB',
+        }
       : {
-        backgroundColor: '#1F2937',
-        color: '#F9FAFB',
-        botaoBg: '#374151',
-        botaoTexto: '#F9FAFB',
-        borda: '#4B5563',
-      };
+          backgroundColor: '#1F2937',
+          color: '#F9FAFB',
+          botaoBg: '#374151',
+          botaoTexto: '#F9FAFB',
+          borda: '#4B5563',
+        };
 
   return (
     <View style={[styles.container, { backgroundColor: estilosAtuais.backgroundColor }]}>
@@ -123,31 +190,9 @@ export default function ConfigScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'center',
-  },
-  label: {
-    fontSize: 18,
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 20,
-  },
-  botao: {
-    width: '100%',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginBottom: 20,
-    borderWidth: 1,
-  },
-  botaoTexto: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  container: { flex: 1, padding: 20, justifyContent: 'center' },
+  label: { fontSize: 18, marginBottom: 8 },
+  input: { borderWidth: 1, borderRadius: 8, padding: 10, marginBottom: 20 },
+  botao: { width: '100%', paddingVertical: 14, borderRadius: 12, alignItems: 'center', marginBottom: 20, borderWidth: 1 },
+  botaoTexto: { fontSize: 16, fontWeight: '600' },
 });

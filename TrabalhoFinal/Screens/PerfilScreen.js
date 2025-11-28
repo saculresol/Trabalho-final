@@ -12,6 +12,17 @@ export default function PerfilScreen({ navigation }) {
 
   const { colors, theme } = useTheme();
 
+  const carregarDadosCache = async () => {
+    try {
+      const nomeCache = await AsyncStorage.getItem('nome');
+      const turmaCache = await AsyncStorage.getItem('turma');
+      if (nomeCache) setNome(nomeCache);
+      if (turmaCache) setTurma(turmaCache);
+    } catch (err) {
+      console.error('Erro ao carregar dados do cache:', err);
+    }
+  };
+
   const carregarDadosSupabase = async () => {
     try {
       const userId = await AsyncStorage.getItem('user_id');
@@ -24,7 +35,7 @@ export default function PerfilScreen({ navigation }) {
         .single();
 
       if (error) {
-        console.error('Erro do Supabase:', error);
+        console.error('Erro do Supabase:', error.message);
         return;
       }
 
@@ -33,6 +44,7 @@ export default function PerfilScreen({ navigation }) {
         setTurma(data.turma || '');
         setImagem(data.imagem || null);
 
+        // Salvar cache
         await AsyncStorage.multiSet([
           ['nome', data.nome || ''],
           ['turma', data.turma || ''],
@@ -43,22 +55,18 @@ export default function PerfilScreen({ navigation }) {
     }
   };
 
-  const carregarDadosCache = async () => {
-    try {
-      const nomeCache = await AsyncStorage.getItem('nome');
-      const turmaCache = await AsyncStorage.getItem('turma');
-      if (nomeCache) setNome(nomeCache);
-      if (turmaCache) setTurma(turmaCache);
-    } catch (err) {
-      console.error('Erro ao carregar dados do cache:', err);
-    }
-  };
-
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', async () => {
+    // Função wrapper para async
+    const fetchData = async () => {
       await carregarDadosCache();
       await carregarDadosSupabase();
+    };
+
+    // Listener de foco
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchData();
     });
+
     return unsubscribe;
   }, [navigation]);
 

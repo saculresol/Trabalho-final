@@ -16,6 +16,9 @@ export default function HomeScreen() {
   const [cardapio, setCardapio] = useState([]);
   const { colors, theme } = useTheme();
 
+  // =============================
+  // 📌 CARREGA USUÁRIO (SALDO + TICKETS)
+  // =============================
   async function carregarDadosUsuario() {
     try {
       const userId = await AsyncStorage.getItem('user_id');
@@ -28,43 +31,40 @@ export default function HomeScreen() {
         .single();
 
       if (error) {
-        console.log('Erro ao buscar usuário no Supabase:', error);
-      } else if (data) {
-        setSaldo(Number(data.saldo ?? 0));
-        setTickets(Number(data.tickets ?? 0));
-
-        try {
-          const raw = await AsyncStorage.getItem('saldosUsuarios');
-          const lista = raw ? JSON.parse(raw) : [];
-          const index = lista.findIndex(u => u.id === String(userId));
-          if (index >= 0) {
-            lista[index].saldo = Number(data.saldo ?? 0);
-          } else {
-            lista.push({ id: String(userId), saldo: Number(data.saldo ?? 0) });
-          }
-          await AsyncStorage.setItem('saldosUsuarios', JSON.stringify(lista));
-        } catch (e) {
-          console.log('Erro ao atualizar cache local de saldo:', e);
-        }
+        console.log('Erro ao buscar usuário:', error);
+        return;
       }
+
+      setSaldo(Number(data.saldo ?? 0));
+      setTickets(Number(data.tickets ?? 0));
+
     } catch (e) {
       console.log('Erro carregarDadosUsuario:', e);
     }
   }
 
+  // =============================
+  // 📌 CARREGA CARDÁPIO
+  // =============================
   async function carregarCardapio() {
     try {
       const dadosCardapio = await fetchMeals();
+
       if (Array.isArray(dadosCardapio)) {
-        setCardapio(dadosCardapio);
-      } else {
-        console.warn('fetchMeals não retornou array:', dadosCardapio);
+        // Filtra itens que NÃO são ticket
+        const somenteComidas = dadosCardapio.filter(
+          item => (item.tipo?.toLowerCase() || '') !== 'ticket'
+        );
+        setCardapio(somenteComidas);
       }
     } catch (e) {
-      console.error('Erro ao carregar cardápio:', e);
+      console.error('Erro carregar cardápio:', e);
     }
   }
 
+  // =============================
+  // 📌 IR PARA PAGAMENTO
+  // =============================
   async function irParaPagamento() {
     const valor = parseFloat(quantia);
     if (isNaN(valor) || valor <= 0) {
@@ -73,10 +73,7 @@ export default function HomeScreen() {
     }
 
     const userId = await AsyncStorage.getItem('user_id');
-    if (!userId) {
-      Alert.alert('Erro', 'Usuário não identificado.');
-      return;
-    }
+    if (!userId) return Alert.alert('Erro', 'Usuário não identificado.');
 
     navigation.navigate('Pagamento', {
       amount: valor,
@@ -86,6 +83,9 @@ export default function HomeScreen() {
     setQuantia('');
   }
 
+  // =============================
+  // 📌 ADICIONAR AO CARRINHO
+  // =============================
   async function adicionarAoCarrinho(item) {
     try {
       const raw = await AsyncStorage.getItem('carrinho');
@@ -94,20 +94,13 @@ export default function HomeScreen() {
       await AsyncStorage.setItem('carrinho', JSON.stringify(carrinhoAtual));
       Alert.alert('Adicionado ao carrinho', `${item.nome} foi adicionado!`);
     } catch (e) {
-      console.error('Erro ao adicionar ao carrinho:', e);
+      console.error('Erro adicionar ao carrinho:', e);
     }
   }
 
-  function gerarSA(tamanho) {
-    const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let resultado = '';
-    for (let i = 0; i < tamanho; i++) {
-      const indice = Math.floor(Math.random() * caracteres.length);
-      resultado += caracteres[indice];
-    }
-    return resultado;
-  }
-
+  // =============================
+  // 📌 SALVAR TRANSAÇÃO
+  // =============================
   async function salvarTransacao(item, tipo) {
     const novaTransacao = {
       nome: item.nome,
@@ -115,85 +108,101 @@ export default function HomeScreen() {
       tipo: tipo,
       data: new Date().toLocaleString(),
     };
+
     try {
       const raw = await AsyncStorage.getItem('transacoes');
       const arr = raw ? JSON.parse(raw) : [];
       arr.push(novaTransacao);
       await AsyncStorage.setItem('transacoes', JSON.stringify(arr));
     } catch (error) {
-      console.error('Erro ao salvar transação:', error);
+      console.error('Erro salvar transação:', error);
     }
   }
 
-  function ComprandoTicket(item) {
-    if (tickets > 0) {
-      setTickets(prev => prev - 1);
-      salvarTransacao(item, 'ticket');
-      Alert.alert('Compra realizada com ticket!', 'Código de autorização: ' + gerarSA(15));
-      atualizarTicketsNoSupabase(-1);
-    } else {
-      Alert.alert('Erro', 'Você não tem tickets suficientes.');
+  // =============================
+  // 📌 USAR TICKET PARA COMPRAR
+  // =============================
+  async function ComprandoTicket(item) {
+    if (tickets <= 0) {
+      return Alert.alert('Erro', 'Você não tem tickets suficientes.');
     }
+
+    await salvarTransacao(item, 'ticket');
+    Alert.alert('Compra realizada com ticket!', 'Código: ' + gerarSA(15));
+
+    await atualizarTicketsNoSupabase(-1);
   }
 
+  // =============================
+  // 📌 ATUALIZA TICKET NO SUPABASE
+  // =============================
   async function atualizarTicketsNoSupabase(delta) {
     try {
       const userId = await AsyncStorage.getItem('user_id');
       if (!userId) return;
+
       const { data, error } = await supabase
         .from('usuarios')
         .select('tickets')
         .eq('id', Number(userId))
         .single();
-      if (error) return console.log('Erro ao ler tickets:', error);
-      const novo = Number((data?.tickets ?? 0)) + delta;
-      await supabase.from('usuarios').update({ tickets: novo }).eq('id', Number(userId));
-      setTickets(novo);
+
+      if (error || !data) {
+        console.log('Erro ao ler tickets:', error);
+        return;
+      }
+
+      const novoTotal = Number(data.tickets) + delta;
+      if (novoTotal < 0) {
+        return Alert.alert('Erro', 'Tickets insuficientes!');
+      }
+
+      const { error: updateError } = await supabase
+        .from('usuarios')
+        .update({ tickets: novoTotal })
+        .eq('id', Number(userId));
+
+      if (updateError) {
+        console.log('Erro ao atualizar tickets:', updateError);
+        return;
+      }
+
+      setTickets(novoTotal);
+
     } catch (e) {
-      console.log('Erro ao atualizar tickets no supabase:', e);
+      console.log('Erro atualizarTicketsNoSupabase:', e);
     }
   }
 
-  useEffect(() => {
-    async function carregarDados() {
-      await carregarDadosUsuario();
-      await carregarCardapio();
-
-      try {
-        const ticketsSalvos = await AsyncStorage.getItem('tickets');
-        if (ticketsSalvos !== null) {
-          setTickets(prev => prev || parseInt(ticketsSalvos));
-        }
-      } catch (e) {
-        console.log('Erro ao carregar tickets cache:', e);
-      }
+  // =============================
+  // 📌 GERAR CÓDIGO
+  // =============================
+  function gerarSA(tamanho) {
+    const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let resultado = '';
+    for (let i = 0; i < tamanho; i++) {
+      resultado += caracteres[Math.floor(Math.random() * caracteres.length)];
     }
+    return resultado;
+  }
 
-    carregarDados();
-
-    const interval = setInterval(() => {
-      setTickets(prev => {
-        const novo = prev + 1;
-        AsyncStorage.setItem('tickets', novo.toString());
-        return novo;
-      });
-      Alert.alert('Novo Ticket', 'Um novo ticket foi adicionado!');
-    }, 86400000);
+  // =============================
+  // 📌 USE EFFECT – CARREGA DADOS
+  // =============================
+  useEffect(() => {
+    carregarDadosUsuario();
+    carregarCardapio();
 
     const unsubscribe = navigation.addListener('focus', () => {
       carregarDadosUsuario();
     });
 
-    return () => {
-      clearInterval(interval);
-      unsubscribe();
-    };
+    return unsubscribe;
   }, []);
 
-  useEffect(() => {
-    AsyncStorage.setItem('tickets', tickets.toString());
-  }, [tickets]);
-
+  // =============================
+  // 📌 RENDER DO CARDÁPIO
+  // =============================
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       {item.imagem && <Image source={{ uri: item.imagem }} style={styles.cardImage} />}
@@ -210,14 +219,18 @@ export default function HomeScreen() {
     </View>
   );
 
+  // =============================
+  // 📌 UI
+  // =============================
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Botões topo */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 }}>
         <TouchableOpacity
           style={styles.transacoesButton}
           onPress={() => navigation.navigate('Transações')}
         >
-          <AntDesign name="profile" size={20} color="#fff" style={{ marginRight: 5 }} />
+          <AntDesign name="profile" size={20} color="#fff" />
           <Text style={styles.transacoesButtonText}>Histórico</Text>
         </TouchableOpacity>
 
@@ -225,12 +238,12 @@ export default function HomeScreen() {
           style={styles.transacoesButton}
           onPress={() => navigation.navigate('Carrinho')}
         >
-          <AntDesign name="shopping" size={20} color="#fff" style={{ marginRight: 5 }} />
+          <AntDesign name="shopping" size={20} color="#fff" />
           <Text style={styles.transacoesButtonText}>Carrinho</Text>
         </TouchableOpacity>
       </View>
 
-      <Text style={[styles.title, { color: colors.text }]}>Saldo: R$ {Number(saldo).toFixed(2)}</Text>
+      <Text style={[styles.title, { color: colors.text }]}>Saldo: R$ {saldo.toFixed(2)}</Text>
       <Text style={[styles.title, { color: colors.text }]}>Tickets: {tickets}</Text>
 
       <TextInput
@@ -239,7 +252,7 @@ export default function HomeScreen() {
           { color: theme === 'dark' ? '#000' : colors.text, backgroundColor: '#ffffff' }
         ]}
         placeholder="Adicionar saldo"
-        placeholderTextColor={theme === 'dark' ? '#666' : '#ccc'}
+        placeholderTextColor="#666"
         keyboardType="numeric"
         value={quantia}
         onChangeText={setQuantia}
@@ -259,11 +272,14 @@ export default function HomeScreen() {
         />
       )}
 
-      <StatusBar style={theme === 'dark' ? 'light' : 'dark'} backgroundColor={colors.background} />
+      <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
     </View>
   );
 }
 
+// =============================
+// 📌 ESTILOS
+// =============================
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20 },
   title: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
@@ -276,7 +292,6 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 20,
     fontSize: 16,
-    elevation: 2,
   },
   cardapioContainer: { paddingBottom: 20 },
   card: {
@@ -284,10 +299,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 15,
     marginBottom: 15,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
     elevation: 3,
   },
   cardImage: { width: '100%', height: 150, borderRadius: 8, marginBottom: 10 },
@@ -303,7 +314,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 20,
-    zIndex: 10,
   },
-  transacoesButtonText: { color: '#fff', fontSize: 14, fontWeight: 'bold' },
+  transacoesButtonText: { color: '#fff', fontSize: 14, fontWeight: 'bold', marginLeft: 5 },
 });
